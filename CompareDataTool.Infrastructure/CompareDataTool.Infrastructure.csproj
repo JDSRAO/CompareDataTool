@@ -16,4 +16,8 @@
     <ProjectReference Include="..\CompareDataTool.Domain\CompareDataTool.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Data\Sqlite\" />
+  </ItemGroup>
+
 </Project>

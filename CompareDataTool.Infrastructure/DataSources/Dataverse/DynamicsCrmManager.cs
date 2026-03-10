@@ -3,7 +3,7 @@ using Newtonsoft.Json.Linq;
 using System.Net.Http.Headers;
 using System.Text;
 
-namespace CompareDataTool.Infrastructure.Dataverse
+namespace CompareDataTool.Infrastructure.DataSources.Dataverse
 {
     public class DynamicsCrmManager
     {
@@ -29,17 +29,17 @@ namespace CompareDataTool.Infrastructure.Dataverse
 
         public DynamicsCrmManager(string url, string tenantId, string clientId, string clientSecret, int pageSize)
         {
-            this.d365url = url;
+            d365url = url;
             this.tenantId = tenantId;
             this.clientId = clientId;
             this.clientSecret = clientSecret;
             this.pageSize = pageSize;
-            this.apiUrl = $"{this.d365url}/api/data/v{ApiVersion}";
+            apiUrl = $"{d365url}/api/data/v{ApiVersion}";
         }
 
         public async Task Create(string entityLogicalName, dynamic content)
         {
-            var request = await this.BuildRequestMessageAsync(entityLogicalName, HttpMethod.Post, null, new StringContent(JsonConvert.SerializeObject(content)));
+            var request = await BuildRequestMessageAsync(entityLogicalName, HttpMethod.Post, null, new StringContent(JsonConvert.SerializeObject(content)));
             using var response = await client.SendAsync(request);
             if (!response.IsSuccessStatusCode)
             {
@@ -55,7 +55,7 @@ namespace CompareDataTool.Infrastructure.Dataverse
 
         public async Task Update(string entityLogicalName, string id, dynamic content)
         {
-            var request = await this.BuildRequestMessageAsync($"{entityLogicalName}({id})", HttpMethod.Patch, null, new StringContent(JsonConvert.SerializeObject(content)));
+            var request = await BuildRequestMessageAsync($"{entityLogicalName}({id})", HttpMethod.Patch, null, new StringContent(JsonConvert.SerializeObject(content)));
             using var response = await client.SendAsync(request);
             if (!response.IsSuccessStatusCode)
             {
@@ -71,14 +71,14 @@ namespace CompareDataTool.Infrastructure.Dataverse
 
         public async Task<T> ExecuteActionAsync<T>(string actionName, dynamic content)
         {
-            var url = $"{this.apiUrl}/{actionName}";
+            var url = $"{apiUrl}/{actionName}";
             var request = new HttpRequestMessage(HttpMethod.Post, url)
             {
                 Content = new StringContent(JsonConvert.SerializeObject(content)),
             };
 
             request.Content.Headers.ContentType = new MediaTypeWithQualityHeaderValue("application/json");
-            request.Headers.Authorization = await this.GetAuthHeaderValueAsync();
+            request.Headers.Authorization = await GetAuthHeaderValueAsync();
 
             var response = await client.SendAsync(request);
             response.EnsureSuccessStatusCode();
@@ -106,7 +106,7 @@ namespace CompareDataTool.Infrastructure.Dataverse
                 }
             }
 
-            var request = await this.BuildRequestMessageAsync(entityLogicalName, HttpMethod.Get, queryString, null);
+            var request = await BuildRequestMessageAsync(entityLogicalName, HttpMethod.Get, queryString, null);
             var response = await client.SendAsync(request);
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
@@ -123,8 +123,8 @@ namespace CompareDataTool.Infrastructure.Dataverse
 
         public async Task<bool> RecordExistsAsync(string entityName, string recordId)
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, $"{this.apiUrl}/{entityName}({recordId})");
-            request.Headers.Authorization = await this.GetAuthHeaderValueAsync();
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{apiUrl}/{entityName}({recordId})");
+            request.Headers.Authorization = await GetAuthHeaderValueAsync();
             var response = await client.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
@@ -170,7 +170,7 @@ namespace CompareDataTool.Infrastructure.Dataverse
                 scheduledfilter.AppendLine($"and {filter}");
             }
 
-            return this.Get<T>("workflow", selectFields.ToArray(), scheduledfilter.ToString());
+            return Get<T>("workflow", selectFields.ToArray(), scheduledfilter.ToString());
         }
 
         private async Task<HttpRequestMessage> BuildRequestMessageAsync(
@@ -179,17 +179,17 @@ namespace CompareDataTool.Infrastructure.Dataverse
             string? queryString = null,
             StringContent? content = null)
         {
-            var url = $"{this.apiUrl}/{entityLogicalName}";
+            var url = $"{apiUrl}/{entityLogicalName}";
             if (!string.IsNullOrWhiteSpace(queryString))
             {
                 url += "?" + queryString;
             }
 
             var request = new HttpRequestMessage(method, url);
-            request.Headers.Authorization = await this.GetAuthHeaderValueAsync();
+            request.Headers.Authorization = await GetAuthHeaderValueAsync();
             request.Headers.Add("OData-MaxVersion", "4.0");
             request.Headers.Add("OData-Version", "4.0");
-            request.Headers.Add("Prefer", $"odata.maxpagesize={this.pageSize}");
+            request.Headers.Add("Prefer", $"odata.maxpagesize={pageSize}");
             request.Headers.Add("Accept", "application/json;odata.metadata=none");
             if (content != null)
             {
@@ -202,7 +202,7 @@ namespace CompareDataTool.Infrastructure.Dataverse
 
         private async Task<AuthenticationHeaderValue> GetAuthHeaderValueAsync()
         {
-            if (string.IsNullOrEmpty(this.token) || DateTime.UtcNow >= this.tokenExpiry.AddMinutes(-1))
+            if (string.IsNullOrEmpty(token) || DateTime.UtcNow >= tokenExpiry.AddMinutes(-1))
             {
                 await GenerateTokenAsync().ConfigureAwait(false);
             }
@@ -212,11 +212,11 @@ namespace CompareDataTool.Infrastructure.Dataverse
 
         private async Task<string> GenerateTokenAsync()
         {
-            var tokenUrl = $"https://login.microsoftonline.com/{this.tenantId}/oauth2/token";
+            var tokenUrl = $"https://login.microsoftonline.com/{tenantId}/oauth2/token";
 
             var request = new HttpRequestMessage(HttpMethod.Post, tokenUrl);
             var requestContentFormat = "grant_type=client_credentials&client_id={0}&client_secret={1}&resource={2}";
-            var requestContent = string.Format(requestContentFormat, this.clientId, this.clientSecret, this.d365url);
+            var requestContent = string.Format(requestContentFormat, clientId, clientSecret, d365url);
 
             request.Content = new StringContent(requestContent, Encoding.UTF8, "application/x-www-form-urlencoded");
             var response = await client.SendAsync(request).ConfigureAwait(false);
@@ -225,8 +225,8 @@ namespace CompareDataTool.Infrastructure.Dataverse
 
             var tokenResponse = JsonConvert.DeserializeObject<TokenResponse>(content);
 
-            this.token = tokenResponse.AccessToken;
-            this.tokenExpiry = DateTime.UtcNow.AddMinutes((tokenResponse.ExpiresIn / 60) - 30);
+            token = tokenResponse.AccessToken;
+            tokenExpiry = DateTime.UtcNow.AddMinutes(tokenResponse.ExpiresIn / 60 - 30);
 
             return tokenResponse.AccessToken;
         }
