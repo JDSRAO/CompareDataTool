@@ -1,6 +1,8 @@
 ﻿using CompareDataTool.Domain.Interfaces;
 using CompareDataTool.Domain.Models;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Text;
 
 namespace CompareDataTool.Infrastructure.DataSources.SQL
 {
@@ -12,12 +14,24 @@ namespace CompareDataTool.Infrastructure.DataSources.SQL
         public SqlDataSource(AppConfiguration appConfiguration)
         {
             this.appConfiguration = appConfiguration;
-            this.sqlManager = new SqlManager(appConfiguration.Destination.EnvironmentVariables["ConnectionString"]);
+            this.sqlManager = new SqlManager(appConfiguration.EnvironmentSettings.Destination.EnvironmentVariables["ConnectionString"]);
         }
 
-        public Task<IEnumerable<JObject>> GetDataAsync(string entity, int pageNumber, int pageSize)
+        public async Task<IEnumerable<JObject>> GetDataAsync(string entity, int pageNumber, int pageSize)
         {
-            throw new NotImplementedException();
+            var entityMapping = this.appConfiguration.EntityMappings.First(x => x.DestinationEntity == entity);
+            var primaryColumn = entityMapping.PrimaryKeyMapping.DestinationPrimaryKey;
+            var fields = entityMapping.FieldMappings.Select(x => x.DestinationField);
+            var query = new StringBuilder();
+            query.AppendLine($"SELECT {string.Join(",", fields)}");
+            query.AppendLine($"FROM {entity}");
+            query.AppendLine($"ORDER BY {primaryColumn}");
+            query.AppendLine($"OFFSET {(pageNumber - 1) * pageSize} ROWS");
+            query.AppendLine($"FETCH NEXT {pageSize} ROWS ONLY");
+            query.AppendLine($"");
+
+            var results = await this.sqlManager.QueryAsync<object>(query.ToString());
+            return JsonConvert.DeserializeObject<IEnumerable<JObject>>(JsonConvert.SerializeObject(results));
         }
     }
 }

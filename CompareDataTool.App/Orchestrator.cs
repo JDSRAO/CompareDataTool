@@ -11,7 +11,7 @@ namespace CompareDataTool.App
         private readonly DataCompareService dataCompareService;
         private readonly AppConfiguration appConfiguration;
 
-        private string RunId => Guid.NewGuid().ToString();
+        private readonly string RunId = Guid.NewGuid().ToString();
 
         public Orchestrator(ILogger<Orchestrator> logger, DataCompareService dataCompareService, AppConfiguration appConfiguration)
         {
@@ -24,14 +24,14 @@ namespace CompareDataTool.App
         {
             foreach (var entityMapping in this.appConfiguration.EntityMappings)
             {
-                await this.GetDataToCompareAsync(this.appConfiguration.Source.Type, entityMapping.SourceEntity);
-                await this.GetDataToCompareAsync(this.appConfiguration.Destination.Type, entityMapping.DestinationEntity);
+                await this.GetDataToCompareAsync(this.appConfiguration.EnvironmentSettings.Source.Type, entityMapping.SourceEntity);
+                await this.GetDataToCompareAsync(this.appConfiguration.EnvironmentSettings.Destination.Type, entityMapping.DestinationEntity);
             }
         }
 
         private async Task GetDataToCompareAsync(string type, string entity)
         {
-            this.logger.LogInformation($"Fetching data for {type} and {entity} : Started");
+            this.logger.LogInformation($"Fetching data for type: {type} and entity: {entity} : Started");
             int pageNumber = 1;
             IEnumerable<JObject> rows;
             var parallelOptions = new ParallelOptions
@@ -45,13 +45,14 @@ namespace CompareDataTool.App
                 rows = await this.dataCompareService.GetDataAsync(type, entity, pageNumber, this.appConfiguration.CompareSettings.PageSize);
                 await Parallel.ForEachAsync(rows, parallelOptions, async (row, token) =>
                 {
+                    this.logger.LogDebug(row.ToString());
                     await this.dataCompareService.SaveDataForProcessingAsync(RunId, type, entity, row);
                 });
                 pageNumber++;
             }
             while (rows.Any());
 
-            this.logger.LogInformation($"Fetching data for {type} and {entity} : Completed");
+            this.logger.LogInformation($"Fetching data for type: {type} and entity: {entity} : Completed");
             this.logger.LogInformation($"");
         }
     }

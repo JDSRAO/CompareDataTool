@@ -3,6 +3,8 @@ using CompareDataTool.Domain.Models;
 using CompareDataTool.Domain.Services;
 using CompareDataTool.Infrastructure.Data;
 using CompareDataTool.Infrastructure.DataSources;
+using CompareDataTool.Infrastructure.DataSources.Dataverse;
+using CompareDataTool.Infrastructure.DataSources.SQL;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -41,6 +43,8 @@ namespace CompareDataTool.App
             {
                 c.SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appSettings.json", false, true);
+
+                SetSerilogConfiguration(c.Build());
             });
 
             host.UseSerilog();
@@ -49,11 +53,14 @@ namespace CompareDataTool.App
             {
                 var config = new AppConfiguration();
                 context.Configuration.Bind(config);
-                
+
+                services.AddSingleton<Orchestrator>();
                 services.AddSingleton<AppConfiguration>(config);
                 services.AddSingleton<IDataSourceRepositoryFactory, DataSourceFactory>();
 
                 services.AddScoped<IAppDataRepository, AppDataRepository>();
+                services.AddScoped<DataverseDataSource>();
+                services.AddScoped<SqlDataSource>();
                 services.AddScoped<DataCompareService>();
                 services.AddScoped<DataCompareService>();
             });
@@ -66,7 +73,7 @@ namespace CompareDataTool.App
             var fileName = "compare-data-";
             var basedir = Path.Combine(Directory.GetCurrentDirectory(), "logs", DateTime.Now.ToString("yyyy-MM-dd"));
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
+                .MinimumLevel.Information()
                 .ReadFrom.Configuration(configuration)
                 .WriteTo.Console()
                 .WriteTo.File(path: $@"{basedir}\{fileName}-.log",
