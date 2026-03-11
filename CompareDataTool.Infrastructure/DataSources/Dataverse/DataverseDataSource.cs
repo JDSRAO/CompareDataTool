@@ -22,6 +22,12 @@ namespace CompareDataTool.Infrastructure.DataSources.Dataverse
                 appConfiguration.EnvironmentSettings.Source.EnvironmentVariables["ClientSecret"]);
         }
 
+        public Task<int> GetCountAsync(string type, string entity)
+        {
+            var query = new StringBuilder();
+            query.Append($"SELECT COUNT(1) FROM {entity}");
+        }
+
         public async Task<IEnumerable<JObject>> GetDataAsync(string entity, int pageNumber, int pageSize)
         {
             var entityMapping = this.appConfiguration.EntityMappings.First(x => x.SourceEntity == entity);

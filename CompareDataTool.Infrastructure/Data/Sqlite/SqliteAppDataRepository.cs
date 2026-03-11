@@ -1,6 +1,7 @@
 ﻿using CompareDataTool.Domain.Interfaces;
 using CompareDataTool.Domain.Models;
 using CompareDataTool.Infrastructure.Data.Sqlite.Models;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Text;
 
@@ -29,9 +30,18 @@ namespace CompareDataTool.Infrastructure.Data.Sqlite
             }
         }
 
-        public Task<IEnumerable<JObject>> GetDataForProcessingAsync(string runId, string type, string entity, int pageNumber, int pageSize)
+        public async Task<IEnumerable<JObject>> GetDataForProcessingAsync(string runId, string type, string entity, int pageNumber, int pageSize)
         {
-            throw new NotImplementedException();
+            var query = new StringBuilder();
+            query.AppendLine($"SELECT {nameof(AppData.Data)} FROM {nameof(AppData)}");
+            query.AppendLine($"ORDER BY {nameof(AppData.Id)}");
+            query.AppendLine($"LIMIT {pageSize} OFFSET {(pageNumber - 1) * pageSize}");
+            query.AppendLine($"");
+            query.AppendLine($"");
+            query.AppendLine("");
+
+            var results = await this.sqLiteManager.QueryAsync<object>(query.ToString());
+            return JsonConvert.DeserializeObject<IEnumerable<JObject>>(JsonConvert.SerializeObject(results));
         }
 
         public async Task SaveRowForProcessingAsync(string runId, string type, string entity, JObject data)
