@@ -24,6 +24,12 @@ namespace CompareDataTool.App
         {
             foreach (var entityMapping in this.appConfiguration.EntityMappings)
             {
+                var sourceCount = await this.dataCompareService.GetCountAsync(this.appConfiguration.EnvironmentSettings.Source.Type, entityMapping.SourceEntity);
+                var destinationCount = await this.dataCompareService.GetCountAsync(this.appConfiguration.EnvironmentSettings.Destination.Type, entityMapping.DestinationEntity);
+                if (sourceCount != destinationCount)
+                {
+                    this.logger.LogInformation("Count mismatch");
+                }
                 await this.GetDataToCompareAsync(this.appConfiguration.EnvironmentSettings.Source.Type, entityMapping.SourceEntity);
                 await this.GetDataToCompareAsync(this.appConfiguration.EnvironmentSettings.Destination.Type, entityMapping.DestinationEntity);
             }

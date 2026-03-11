@@ -17,4 +17,10 @@
     <ProjectReference Include="..\CompareDataTool.Domain\CompareDataTool.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Data\Sqlite\AppDataSchema.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

@@ -29,6 +29,11 @@ namespace CompareDataTool.Domain.Services
             return dataRepository.GetCountAsync(entity);
         }
 
+        public Task SaveRecordCountMismatchAsync(string runId, string sourceEntity, string destinationEntity, int sourceCount, int destinationCount)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task SaveDataForProcessingAsync(string runId, string type, string entity, JObject data)
         {
             return this.appDataRepository.SaveRowForProcessingAsync(runId, type, entity, data);

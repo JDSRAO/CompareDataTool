@@ -22,10 +22,13 @@ namespace CompareDataTool.Infrastructure.DataSources.Dataverse
                 appConfiguration.EnvironmentSettings.Source.EnvironmentVariables["ClientSecret"]);
         }
 
-        public Task<int> GetCountAsync(string type, string entity)
+        public async Task<int> GetCountAsync(string entity)
         {
             var query = new StringBuilder();
-            query.Append($"SELECT COUNT(1) FROM {entity}");
+            query.Append($"SELECT COUNT(1) AS [RecordCount] FROM {entity}");
+            var results = await this.sqlManager.QueryAsync<object>(query.ToString());
+            var rowsCount = JsonConvert.DeserializeObject<IEnumerable<JObject>>(JsonConvert.SerializeObject(results));
+            return Convert.ToInt32(rowsCount.ElementAt(0)["RecordCount"]);
         }
 
         public async Task<IEnumerable<JObject>> GetDataAsync(string entity, int pageNumber, int pageSize)
