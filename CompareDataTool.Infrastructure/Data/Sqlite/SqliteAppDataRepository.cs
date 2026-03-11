@@ -2,8 +2,10 @@
 using CompareDataTool.Domain.Models;
 using CompareDataTool.Infrastructure.Data.Sqlite.Models;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using System;
+using System.Globalization;
 using System.Text;
+using static Dapper.SqlMapper;
 
 namespace CompareDataTool.Infrastructure.Data.Sqlite
 {
@@ -25,32 +27,75 @@ namespace CompareDataTool.Infrastructure.Data.Sqlite
             }
         }
 
-        public async Task<IEnumerable<JObject>> GetDataForProcessingAsync(string runId, string type, string entity, int pageNumber, int pageSize)
+        public async Task<IEnumerable<string>> GetRowIdAsync(string runId, string type, string entity, int pageNumber, int pageSize)
         {
             var query = new StringBuilder();
-            query.AppendLine($"SELECT {nameof(AppData.RowData)} FROM {nameof(AppData)}");
-            query.AppendLine($"ORDER BY {nameof(AppData.Id)}");
+            query.AppendLine($"SELECT RowId FROM EntityData");
+            query.AppendLine($"ORDER BY Id");
             query.AppendLine($"LIMIT {pageSize} OFFSET {(pageNumber - 1) * pageSize}");
             query.AppendLine($"");
             query.AppendLine($"");
             query.AppendLine("");
 
             var results = await this.sqLiteManager.QueryAsync<object>(query.ToString());
-            return JsonConvert.DeserializeObject<IEnumerable<JObject>>(JsonConvert.SerializeObject(results));
+            return JsonConvert.DeserializeObject<IEnumerable<string>>(JsonConvert.SerializeObject(results));
         }
 
-        public async Task SaveRowForProcessingAsync(string runId, string type, string entity, JObject data)
+        public async Task InsertEntityCountMismatchAsync(string runId, string sourceEntity, string destinationEntity, int sourceCount, int destinationCount)
         {
             var query = new StringBuilder();
-            query.AppendLine($"INSERT INTO {nameof(AppData)} ({nameof(AppData.RunId)}, {nameof(AppData.Type)}, {nameof(AppData.Entity)}, {nameof(AppData.RowData)}, {nameof(AppData.CreatedOn)})");
-            query.AppendLine("VALUES (@runId, @type, @entity, @data, @createdOn)");
+            query.AppendLine($"INSERT INTO EntityCountMismatch (RunId,SourceEntity,DestinationEntity,SourceCount,DestinationCount, CreatedOn)");
+            query.AppendLine("VALUES (@runId, @sourceEntity, @destinationEntity, @sourceCount, @destinationCount, @createdOn)");
+
+            var inputs = new List<KeyValuePair<string, object>>
+            {
+                new KeyValuePair<string, object>("runId", runId),
+                new KeyValuePair<string, object>("sourceEntity", sourceEntity),
+                new KeyValuePair<string, object>("destinationEntity", destinationEntity),
+                new KeyValuePair<string, object>("sourceCount", sourceCount),
+                new KeyValuePair<string, object>("destinationCount", destinationCount),
+                new KeyValuePair<string, object>("createdOn", DateTime.UtcNow.ToString("O")),
+            };
+
+            await this.sqLiteManager.ExecuteAsync(query.ToString(), inputs.ToArray());
+        }
+
+        public Task InsertEntityFieldMismatchAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task InsertEntityRecordMismatchAsync(string runId, string entity, string rowId, bool existsInSource, bool existsInDestination)
+        {
+            var query = new StringBuilder();
+            query.AppendLine($"INSERT INTO EntityRecordMismatch (RunId,Entity,RowId,ExistsInSource,ExistsInDestination, CreatedOn)");
+            query.AppendLine("VALUES (@runId, @entity, @rowId, @existsInSource, @existsInDestination, @createdOn)");
+
+            var inputs = new List<KeyValuePair<string, object>>
+            {
+                new KeyValuePair<string, object>("runId", runId),
+                new KeyValuePair<string, object>("entity", entity),
+                new KeyValuePair<string, object>("rowId", rowId),
+                new KeyValuePair<string, object>("existsInSource", existsInSource ? 1 : 0),
+                new KeyValuePair<string, object>("existsInDestination", existsInDestination ? 1 : 0),
+                new KeyValuePair<string, object>("createdOn", DateTime.UtcNow.ToString("O")),
+            };
+
+            await this.sqLiteManager.ExecuteAsync(query.ToString(), inputs.ToArray());
+        }
+
+        public async Task SaveRowIdAsync(string runId, string type, string entity, string rowId)
+        {
+            var query = new StringBuilder();
+            query.AppendLine($"INSERT INTO EntityData  (RunId,DataSourceType,Entity,RowId,CreatedOn)");
+            query.AppendLine("VALUES (@runId, @type, @entity, @rowId, @createdOn)");
 
             var inputs = new List<KeyValuePair<string, object>>
             {
                 new KeyValuePair<string, object>("runId", runId),
                 new KeyValuePair<string, object>("type", type),
                 new KeyValuePair<string, object>("entity", entity),
-                new KeyValuePair<string, object>("data", data.ToString()),
+                new KeyValuePair<string, object>("rowId", rowId),
                 new KeyValuePair<string, object>("createdOn", DateTime.UtcNow.ToString("O")),
             };
 
@@ -61,19 +106,19 @@ namespace CompareDataTool.Infrastructure.Data.Sqlite
         {
             var schemaFilePath = Path.Combine(fileBasePath, "Data", "Sqlite", "AppDataSchema.txt");
             var dbSchema = await File.ReadAllTextAsync(schemaFilePath);
-            var query = new StringBuilder();
-            query.AppendLine($"CREATE TABLE {nameof(AppData)}");
-            query.AppendLine("(");
-            query.AppendLine($"{nameof(AppData.Id)} INTEGER,");
-            query.AppendLine($"{nameof(AppData.RunId)} TEXT,");
-            query.AppendLine($"{nameof(AppData.Type)} TEXT,");
-            query.AppendLine($"{nameof(AppData.Entity)} TEXT,");
-            query.AppendLine($"{nameof(AppData.RowData)} TEXT,");
-            query.AppendLine($"{nameof(AppData.CreatedOn)} TEXT,");
-            query.AppendLine($"PRIMARY KEY(\"{nameof(AppData.Id)}\" AUTOINCREMENT)");
-            query.AppendLine(")");
-            query.AppendLine($"");
-            query.AppendLine("");
+            //var query = new StringBuilder();
+            //query.AppendLine($"CREATE TABLE {nameof(AppData)}");
+            //query.AppendLine("(");
+            //query.AppendLine($"{nameof(AppData.Id)} INTEGER,");
+            //query.AppendLine($"{nameof(AppData.RunId)} TEXT,");
+            //query.AppendLine($"{nameof(AppData.Type)} TEXT,");
+            //query.AppendLine($"{nameof(AppData.Entity)} TEXT,");
+            //query.AppendLine($"{nameof(AppData.RowData)} TEXT,");
+            //query.AppendLine($"{nameof(AppData.CreatedOn)} TEXT,");
+            //query.AppendLine($"PRIMARY KEY(\"{nameof(AppData.Id)}\" AUTOINCREMENT)");
+            //query.AppendLine(")");
+            //query.AppendLine($"");
+            //query.AppendLine("");
 
             await this.sqLiteManager.CreateTableIfNotExists(dbSchema);
         }

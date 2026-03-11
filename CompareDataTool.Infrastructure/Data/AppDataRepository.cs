@@ -22,7 +22,7 @@ namespace CompareDataTool.Infrastructure.Data
             }
         }
 
-        public async Task<IEnumerable<JObject>> GetDataForProcessingAsync(string runId, string type, string entity, int pageNumber, int pageSize)
+        public async Task<IEnumerable<JObject>> GetRowIdAsync(string runId, string type, string entity, int pageNumber, int pageSize)
         {
             var primaryColumn = string.Empty;
             if (type == DataSourceTypes.Source)

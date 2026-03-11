@@ -29,15 +29,16 @@ namespace CompareDataTool.App
                 if (sourceCount != destinationCount)
                 {
                     this.logger.LogInformation("Count mismatch");
+                    await this.dataCompareService.SaveRecordCountMismatchAsync(RunId, entityMapping.SourceEntity, entityMapping.DestinationEntity, sourceCount, destinationCount);
                 }
-                await this.GetDataToCompareAsync(this.appConfiguration.EnvironmentSettings.Source.Type, entityMapping.SourceEntity);
-                await this.GetDataToCompareAsync(this.appConfiguration.EnvironmentSettings.Destination.Type, entityMapping.DestinationEntity);
+                await this.GetDataToCompareAsync(this.appConfiguration.EnvironmentSettings.Source.Type, entityMapping.SourceEntity, entityMapping.PrimaryKeyMapping.SourcePrimaryKey, entityMapping.DestinationEntity, entityMapping.PrimaryKeyMapping.DestinationPrimaryKey);
+                await this.GetDataToCompareAsync(this.appConfiguration.EnvironmentSettings.Destination.Type, entityMapping.DestinationEntity, entityMapping.PrimaryKeyMapping.DestinationPrimaryKey, entityMapping.SourceEntity, entityMapping.PrimaryKeyMapping.SourcePrimaryKey);
             }
         }
 
-        private async Task GetDataToCompareAsync(string type, string entity)
+        private async Task GetDataToCompareAsync(string type, string sourceEntity, string sourcePrimaryKey, string destinationEntity, string destinationPrimaryKey)
         {
-            this.logger.LogInformation($"Fetching data for type: {type} and entity: {entity} : Started");
+            this.logger.LogInformation($"Fetching data for type: {type} and entity: {sourceEntity} : Started");
             int pageNumber = 1;
             IEnumerable<JObject> rows;
             var parallelOptions = new ParallelOptions
@@ -48,13 +49,29 @@ namespace CompareDataTool.App
             do
             {
                 this.logger.LogInformation($"PageNumber : {pageNumber}");
-                rows = await this.dataCompareService.GetDataAsync(type, entity, pageNumber, this.appConfiguration.CompareSettings.PageSize);
+                rows = await this.dataCompareService.GetDataAsync(type, sourceEntity, pageNumber, this.appConfiguration.CompareSettings.PageSize);
                 await Parallel.ForEachAsync(rows, parallelOptions, async (row, token) =>
                 {
                     try
                     {
                         this.logger.LogInformation("*");
-                        await this.dataCompareService.SaveDataForProcessingAsync(RunId, type, entity, row);
+                        await this.dataCompareService.SaveRowIdAsync(RunId, type, sourceEntity, row[sourcePrimaryKey].ToString());
+
+                        var exists = true;
+                        if (type == DataSourceTypes.Source)
+                        {
+                            exists = await this.dataCompareService.RecordExistsInDestinationAsync(destinationEntity, row[sourcePrimaryKey].ToString());
+                        }
+                        else
+                        {
+                            exists = await this.dataCompareService.RecordExistsInSourceAsync(sourceEntity, row[destinationPrimaryKey].ToString());
+                        }
+
+
+                        if (!exists)
+                        {
+                            await this.dataCompareService.SaveEntityRecordMismatchAsync(RunId, row[sourcePrimaryKey].ToString(), sourceEntity, type);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -68,7 +85,7 @@ namespace CompareDataTool.App
             }
             while (rows.Any());
 
-            this.logger.LogInformation($"Fetching data for type: {type} and entity: {entity} : Completed");
+            this.logger.LogInformation($"Fetching data for type: {type} and entity: {sourceEntity} : Completed");
             this.logger.LogInformation($"");
         }
 

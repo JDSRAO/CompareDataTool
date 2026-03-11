@@ -42,5 +42,16 @@ namespace CompareDataTool.Infrastructure.DataSources.SQL
             var results = await this.sqlManager.QueryAsync<object>(query.ToString());
             return JsonConvert.DeserializeObject<IEnumerable<JObject>>(JsonConvert.SerializeObject(results));
         }
+
+        public async Task<bool> RecordExistsAsync(string entity, string rowId)
+        {
+            var entityMapping = this.appConfiguration.EntityMappings.First(x => x.DestinationEntity == entity);
+            var primaryColumn = entityMapping.PrimaryKeyMapping.DestinationPrimaryKey;
+            var query = new StringBuilder();
+            query.Append($"SELECT COUNT(1) AS [RecordCount] FROM {entity} WHERE {primaryColumn} = '{rowId}'");
+            var results = await this.sqlManager.QueryAsync<object>(query.ToString());
+            var rowsCount = JsonConvert.DeserializeObject<IEnumerable<JObject>>(JsonConvert.SerializeObject(results));
+            return Convert.ToInt32(rowsCount.ElementAt(0)["RecordCount"]) > 0;
+        }
     }
 }

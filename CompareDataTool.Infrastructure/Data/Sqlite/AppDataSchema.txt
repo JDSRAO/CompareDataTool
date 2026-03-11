@@ -1,6 +1,5 @@
 DROP TABLE IF EXISTS AppData;
 
-
 CREATE TABLE "AppData" 
 (
 	"Id"	INTEGER UNIQUE,
@@ -8,6 +7,19 @@ CREATE TABLE "AppData"
 	"Type"	TEXT,
 	"Entity"	TEXT,
 	"Data"	TEXT,
+	"CreatedOn"	TEXT,
+	PRIMARY KEY("Id" AUTOINCREMENT)
+);
+
+DROP TABLE IF EXISTS "EntityData";
+
+CREATE TABLE "EntityData"
+(
+	"Id"	INTEGER UNIQUE,
+	"RunId"	TEXT,
+	"DataSourceType"	TEXT,
+	"Entity"	TEXT,
+	"RowId"	TEXT,
 	"CreatedOn"	TEXT,
 	PRIMARY KEY("Id" AUTOINCREMENT)
 );
@@ -26,6 +38,20 @@ CREATE TABLE "EntityCountMismatch"
 	PRIMARY KEY("Id" AUTOINCREMENT)
 );
 
+DROP TABLE IF EXISTS "EntityRecordMismatch";
+
+CREATE TABLE "EntityRecordMismatch"
+(
+	"Id"	INTEGER,
+	"RunId"	TEXT,
+	"Entity"	TEXT,
+	"RowId"	TEXT,
+	"ExistsInSource"	INTEGER,
+	"ExistsInDestination"	INTEGER,
+	"CreatedOn"	TEXT,
+	PRIMARY KEY("Id" AUTOINCREMENT)
+);
+
 DROP TABLE IF EXISTS "EntityFieldMismatch";
 
 CREATE TABLE "EntityFieldMismatch"
@@ -38,30 +64,5 @@ CREATE TABLE "EntityFieldMismatch"
 	"SourceValue"	TEXT,
 	"DestinationValue"	TEXT,
 	"CreatedOn"	TEXT,
-	PRIMARY KEY("Id" AUTOINCREMENT)
-);
-
-DROP TABLE IF EXISTS "EntityData";
-
-CREATE TABLE "EntityData"
-(
-	"Id"	INTEGER UNIQUE,
-	"RunId"	TEXT,
-	"DataSourceType"	TEXT,
-	"Entity"	TEXT,
-	"RowId"	TEXT,
-	"CreatedOn"	TEXT,
-	PRIMARY KEY("Id" AUTOINCREMENT)
-);
-
-DROP TABLE IF EXISTS "EntityRecordMismatch";
-
-CREATE TABLE "EntityRecordMismatch"
-(
-	"Id"	INTEGER,
-	"RunId"	TEXT,
-	"ExistsInSource"	INTEGER,
-	"ExistsInDestination"	INTEGER,
-	"RowId"	TEXT,
 	PRIMARY KEY("Id" AUTOINCREMENT)
 );
