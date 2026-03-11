@@ -89,11 +89,19 @@ namespace CompareDataTool.Infrastructure.Data.Sqlite
             }
         }
 
-        public async Task<int> ExecuteAsync(string sql)
+        public async Task<int> ExecuteAsync(string sql, params KeyValuePair<string, object>[] inputs)
         {
             using (var connection = new SqliteConnection(connectionString))
             {
-                return await connection.ExecuteAsync(sql);
+                connection.Open();
+                var command = connection.CreateCommand();
+                command.CommandText = sql;
+                foreach (var input in inputs)
+                {
+                    command.Parameters.AddWithValue(input.Key, input.Value);
+                }
+                
+                return await command.ExecuteNonQueryAsync();
             }
         }
     }

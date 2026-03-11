@@ -35,18 +35,26 @@ namespace CompareDataTool.Infrastructure.Data.Sqlite
         {
             var query = new StringBuilder();
             query.AppendLine($"INSERT INTO {nameof(AppData)} ({nameof(AppData.RunId)}, {nameof(AppData.Type)}, {nameof(AppData.Entity)}, {nameof(AppData.Data)})");
-            query.AppendLine("VALUES (");
-            query.AppendLine($"'{runId}',");
-            query.AppendLine($"'{type}',");
-            query.AppendLine($"'{entity}',");
-            query.AppendLine($"'{JsonConvert.SerializeObject(data)}'");
-            query.AppendLine($"");
-            query.AppendLine(");");
+            query.AppendLine("VALUES (@runId, @type, @entity, @data)");
+            //query.AppendLine($"'{runId}',");
+            //query.AppendLine($"'{type}',");
+            //query.AppendLine($"'{entity}',");
+            //query.AppendLine($"'{JsonConvert.SerializeObject(data)}'");
+            //query.AppendLine($"");
+            //query.AppendLine(");");
             query.AppendLine("");
             query.AppendLine("");
             query.AppendLine("");
 
-            await this.sqLiteManager.ExecuteAsync(query.ToString());
+            var inputs = new List<KeyValuePair<string, object>>
+            {
+                new KeyValuePair<string, object>("runId", runId),
+                new KeyValuePair<string, object>("type", type),
+                new KeyValuePair<string, object>("entity", entity),
+                new KeyValuePair<string, object>("data", data.ToString()),
+            };
+
+            await this.sqLiteManager.ExecuteAsync(query.ToString(), inputs.ToArray());
         }
 
         private async Task CreateTableSchemaAsync()
