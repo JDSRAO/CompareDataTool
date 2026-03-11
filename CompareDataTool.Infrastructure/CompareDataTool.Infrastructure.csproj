@@ -10,14 +10,11 @@
     <PackageReference Include="Dapper" Version="2.1.72" />
     <PackageReference Include="Dapper.Contrib" Version="2.0.78" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.4" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.4" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CompareDataTool.Domain\CompareDataTool.Domain.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Data\Sqlite\" />
   </ItemGroup>
 
 </Project>
