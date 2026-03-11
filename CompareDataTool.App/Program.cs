@@ -1,7 +1,7 @@
 ﻿using CompareDataTool.Domain.Interfaces;
 using CompareDataTool.Domain.Models;
 using CompareDataTool.Domain.Services;
-using CompareDataTool.Infrastructure.Data;
+using CompareDataTool.Infrastructure.Data.Sqlite;
 using CompareDataTool.Infrastructure.DataSources;
 using CompareDataTool.Infrastructure.DataSources.Dataverse;
 using CompareDataTool.Infrastructure.DataSources.SQL;
@@ -58,7 +58,7 @@ namespace CompareDataTool.App
                 services.AddSingleton<AppConfiguration>(config);
                 services.AddSingleton<IDataSourceRepositoryFactory, DataSourceFactory>();
 
-                services.AddScoped<IAppDataRepository, AppDataRepository>();
+                services.AddScoped<IAppDataRepository, SqliteAppDataRepository>();
                 services.AddScoped<DataverseDataSource>();
                 services.AddScoped<SqlDataSource>();
                 services.AddScoped<DataCompareService>();
@@ -73,7 +73,7 @@ namespace CompareDataTool.App
             var fileName = "compare-data-";
             var basedir = Path.Combine(Directory.GetCurrentDirectory(), "logs", DateTime.Now.ToString("yyyy-MM-dd"));
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Information()
+                .MinimumLevel.Debug()
                 .ReadFrom.Configuration(configuration)
                 .WriteTo.Console()
                 .WriteTo.File(path: $@"{basedir}\{fileName}-.log",
