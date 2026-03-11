@@ -9,5 +9,7 @@
         public bool TrimAndCompare { get; set; } = default!;
 
         public bool ConvertToLowerAndCompare { get; set; } = default!;
+
+        public string AppDataFile { get; set; } = default!;
     }
 }

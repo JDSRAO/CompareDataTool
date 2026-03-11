@@ -1,7 +1,6 @@
 ﻿using CompareDataTool.Domain.Interfaces;
 using CompareDataTool.Domain.Models;
 using CompareDataTool.Infrastructure.Data.Sqlite.Models;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Text;
 
@@ -12,16 +11,20 @@ namespace CompareDataTool.Infrastructure.Data.Sqlite
         private readonly AppConfiguration appConfiguration;
         private readonly SqLiteManager sqLiteManager;
 
-        private const string fileName = "ComareData.db";
         private readonly string fileBasePath = Path.Combine(Directory.GetCurrentDirectory(), "localData");
 
         public SqliteAppDataRepository(AppConfiguration appConfiguration)
         {
             this.appConfiguration = appConfiguration;
-            this.sqLiteManager = new SqLiteManager($"Data Source={fileBasePath}\\{fileName}");
+            var dbFilePath = $"{fileBasePath}\\{this.appConfiguration.CompareSettings.AppDataFile}";
+            this.sqLiteManager = new SqLiteManager($"Data Source={dbFilePath}");
             if (!Directory.Exists(fileBasePath))
             {
                 Directory.CreateDirectory(fileBasePath);
+            }
+
+            if (!File.Exists(dbFilePath))
+            {
                 this.CreateTableSchemaAsync().GetAwaiter().GetResult();
             }
         }
@@ -36,15 +39,6 @@ namespace CompareDataTool.Infrastructure.Data.Sqlite
             var query = new StringBuilder();
             query.AppendLine($"INSERT INTO {nameof(AppData)} ({nameof(AppData.RunId)}, {nameof(AppData.Type)}, {nameof(AppData.Entity)}, {nameof(AppData.Data)})");
             query.AppendLine("VALUES (@runId, @type, @entity, @data)");
-            //query.AppendLine($"'{runId}',");
-            //query.AppendLine($"'{type}',");
-            //query.AppendLine($"'{entity}',");
-            //query.AppendLine($"'{JsonConvert.SerializeObject(data)}'");
-            //query.AppendLine($"");
-            //query.AppendLine(");");
-            query.AppendLine("");
-            query.AppendLine("");
-            query.AppendLine("");
 
             var inputs = new List<KeyValuePair<string, object>>
             {
