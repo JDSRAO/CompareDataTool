@@ -37,8 +37,8 @@ namespace CompareDataTool.Infrastructure.Data.Sqlite
         public async Task SaveRowForProcessingAsync(string runId, string type, string entity, JObject data)
         {
             var query = new StringBuilder();
-            query.AppendLine($"INSERT INTO {nameof(AppData)} ({nameof(AppData.RunId)}, {nameof(AppData.Type)}, {nameof(AppData.Entity)}, {nameof(AppData.Data)})");
-            query.AppendLine("VALUES (@runId, @type, @entity, @data)");
+            query.AppendLine($"INSERT INTO {nameof(AppData)} ({nameof(AppData.RunId)}, {nameof(AppData.Type)}, {nameof(AppData.Entity)}, {nameof(AppData.Data)}, {nameof(AppData.CreatedOn)})");
+            query.AppendLine("VALUES (@runId, @type, @entity, @data, @createdOn)");
 
             var inputs = new List<KeyValuePair<string, object>>
             {
@@ -46,6 +46,7 @@ namespace CompareDataTool.Infrastructure.Data.Sqlite
                 new KeyValuePair<string, object>("type", type),
                 new KeyValuePair<string, object>("entity", entity),
                 new KeyValuePair<string, object>("data", data.ToString()),
+                new KeyValuePair<string, object>("createdOn", DateTime.UtcNow.ToString("O")),
             };
 
             await this.sqLiteManager.ExecuteAsync(query.ToString(), inputs.ToArray());
@@ -61,6 +62,7 @@ namespace CompareDataTool.Infrastructure.Data.Sqlite
             query.AppendLine($"{nameof(AppData.Type)} TEXT,");
             query.AppendLine($"{nameof(AppData.Entity)} TEXT,");
             query.AppendLine($"{nameof(AppData.Data)} TEXT,");
+            query.AppendLine($"{nameof(AppData.CreatedOn)} TEXT,");
             query.AppendLine($"PRIMARY KEY(\"{nameof(AppData.Id)}\" AUTOINCREMENT)");
             query.AppendLine(")");
             query.AppendLine($"");

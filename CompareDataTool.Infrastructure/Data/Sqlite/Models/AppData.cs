@@ -11,5 +11,7 @@
         public string Entity { get; set; } = default!;
 
         public string Data { get; set; } = default!;
+
+        public string CreatedOn { get; set; } = default!;
     }
 }
