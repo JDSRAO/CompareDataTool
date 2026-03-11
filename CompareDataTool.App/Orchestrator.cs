@@ -41,13 +41,13 @@ namespace CompareDataTool.App
 
             do
             {
-                this.logger.LogDebug($"PageNumber : {pageNumber}");
+                this.logger.LogInformation($"PageNumber : {pageNumber}");
                 rows = await this.dataCompareService.GetDataAsync(type, entity, pageNumber, this.appConfiguration.CompareSettings.PageSize);
                 await Parallel.ForEachAsync(rows, parallelOptions, async (row, token) =>
                 {
                     try
                     {
-                        this.logger.LogDebug(row.ToString());
+                        this.logger.LogInformation("*");
                         await this.dataCompareService.SaveDataForProcessingAsync(RunId, type, entity, row);
                     }
                     catch (Exception ex)
