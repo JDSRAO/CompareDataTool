@@ -88,10 +88,5 @@ namespace CompareDataTool.App
             this.logger.LogInformation($"Fetching data for type: {type} and entity: {sourceEntity} : Completed");
             this.logger.LogInformation($"");
         }
-
-        private async Task CompareDataAsync(IEnumerable<JObject> source, IEnumerable<JObject> destination)
-        {
-
-        }
     }
 }
