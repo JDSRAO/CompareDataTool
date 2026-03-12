@@ -34,15 +34,9 @@ namespace CompareDataTool.Domain.Services
             return dataRepository.GetCountAsync(entity);
         }
 
-        public Task<bool> RecordExistsInSourceAsync(string entity, string rowId)
+        public Task<bool> RecordExistsAsync(string type, string entity, string rowId)
         {
-            var dataRepository = this.dataSourceRepositoryFactory.GetDataSourceRepositoryService(DataSourceTypes.Source);
-            return dataRepository.RecordExistsAsync(entity, rowId);
-        }
-
-        public Task<bool> RecordExistsInDestinationAsync(string entity, string rowId)
-        {
-            var dataRepository = this.dataSourceRepositoryFactory.GetDataSourceRepositoryService(DataSourceTypes.Destination);
+            var dataRepository = this.dataSourceRepositoryFactory.GetDataSourceRepositoryService(type);
             return dataRepository.RecordExistsAsync(entity, rowId);
         }
 

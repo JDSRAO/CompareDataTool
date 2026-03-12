@@ -31,12 +31,12 @@ namespace CompareDataTool.App
                     this.logger.LogInformation("Count mismatch");
                     await this.dataCompareService.SaveRecordCountMismatchAsync(RunId, entityMapping.SourceEntity, entityMapping.DestinationEntity, sourceCount, destinationCount);
                 }
-                await this.GetDataToCompareAsync(this.appConfiguration.EnvironmentSettings.Source.Type, entityMapping.SourceEntity, entityMapping.PrimaryKeyMapping.SourcePrimaryKey, entityMapping.DestinationEntity, entityMapping.PrimaryKeyMapping.DestinationPrimaryKey);
-                await this.GetDataToCompareAsync(this.appConfiguration.EnvironmentSettings.Destination.Type, entityMapping.DestinationEntity, entityMapping.PrimaryKeyMapping.DestinationPrimaryKey, entityMapping.SourceEntity, entityMapping.PrimaryKeyMapping.SourcePrimaryKey);
+                await this.GetDataToCompareAsync(this.appConfiguration.EnvironmentSettings.Source.Type, entityMapping.SourceEntity, entityMapping.PrimaryKeyMapping.SourcePrimaryKey, entityMapping.DestinationEntity);
+                await this.GetDataToCompareAsync(this.appConfiguration.EnvironmentSettings.Destination.Type, entityMapping.DestinationEntity, entityMapping.PrimaryKeyMapping.DestinationPrimaryKey, entityMapping.SourceEntity);
             }
         }
 
-        private async Task GetDataToCompareAsync(string type, string sourceEntity, string sourcePrimaryKey, string destinationEntity, string destinationPrimaryKey)
+        private async Task GetDataToCompareAsync(string type, string sourceEntity, string sourcePrimaryKey, string destinationEntity)
         {
             this.logger.LogInformation($"Fetching data for type: {type} and entity: {sourceEntity} : Started");
             int pageNumber = 1;
@@ -57,15 +57,17 @@ namespace CompareDataTool.App
                         this.logger.LogInformation("*");
                         await this.dataCompareService.SaveRowIdAsync(RunId, type, sourceEntity, row[sourcePrimaryKey].ToString());
 
-                        var exists = true;
+                        var destinationType = type;
                         if (type == DataSourceTypes.Source)
                         {
-                            exists = await this.dataCompareService.RecordExistsInDestinationAsync(destinationEntity, row[sourcePrimaryKey].ToString());
+                            destinationType = DataSourceTypes.Destination;
                         }
                         else
                         {
-                            exists = await this.dataCompareService.RecordExistsInSourceAsync(sourceEntity, row[destinationPrimaryKey].ToString());
+                            destinationType = DataSourceTypes.Source;
                         }
+
+                        var exists = await this.dataCompareService.RecordExistsAsync(destinationType, destinationEntity, row[sourcePrimaryKey].ToString());
 
 
                         if (!exists)
