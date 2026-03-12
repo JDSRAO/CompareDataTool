@@ -88,6 +88,12 @@ namespace CompareDataTool.App
                   rollingInterval: RollingInterval.Day,
                   restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Warning,
                   rollOnFileSizeLimit: true)
+                .WriteTo.SQLite
+                (
+                    sqliteDbPath: Path.Combine(Directory.GetCurrentDirectory(), "logs", "logs.db"),
+                    tableName: "Logs",  
+                    batchSize: 1 // Logs will be written to the DB immediately
+                )
                  //.WriteTo.MSSqlServer
                  //(
                  //    connectionString: "Server=IN00478\\SQLEXPRESS;Database=RestaurantDb;Integrated Security=True;TrustServerCertificate=True",
