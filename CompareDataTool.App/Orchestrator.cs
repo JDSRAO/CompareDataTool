@@ -32,7 +32,7 @@ namespace CompareDataTool.App
                 var destinationCount = await this.dataCompareService.GetCountAsync(this.appConfiguration.EnvironmentSettings.Destination.Type, entityMapping.DestinationEntity);
                 if (sourceCount != destinationCount)
                 {
-                    this.logger.LogInformation("Count mismatch");
+                    this.logger.LogWarning("Count mismatch");
                     await this.dataCompareService.SaveRecordCountMismatchAsync(RunId, entityMapping.SourceEntity, entityMapping.DestinationEntity, sourceCount, destinationCount);
                 }
                 await this.GetDataToCompareAsync(this.appConfiguration.EnvironmentSettings.Source.Type, entityMapping.SourceEntity, entityMapping.PrimaryKeyMapping.SourcePrimaryKey, entityMapping.DestinationEntity);
@@ -78,6 +78,7 @@ namespace CompareDataTool.App
                         var exists = await this.dataCompareService.RecordExistsAsync(destinationType, destinationEntity, row[sourcePrimaryKey].ToString());
                         if (!exists)
                         {
+                            this.logger.LogWarning("Mising record");
                             await this.dataCompareService.SaveEntityRecordMismatchAsync(RunId, row[sourcePrimaryKey].ToString(), sourceEntity, type);
                         }
                     }
