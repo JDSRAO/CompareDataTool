@@ -2,6 +2,7 @@
 using CompareDataTool.Domain.Services;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
+using System.Diagnostics;
 
 namespace CompareDataTool.App
 {
@@ -12,9 +13,11 @@ namespace CompareDataTool.App
         private readonly AppConfiguration appConfiguration;
 
         private readonly string RunId = Guid.NewGuid().ToString();
+        private Stopwatch stopwatch;
 
         public Orchestrator(ILogger<Orchestrator> logger, DataCompareService dataCompareService, AppConfiguration appConfiguration)
         {
+            stopwatch = new Stopwatch();
             this.dataCompareService = dataCompareService;
             this.logger = logger;
             this.appConfiguration = appConfiguration;
@@ -22,6 +25,7 @@ namespace CompareDataTool.App
 
         public async Task RunAsync()
         {
+            this.stopwatch.Start();
             foreach (var entityMapping in this.appConfiguration.EntityMappings)
             {
                 var sourceCount = await this.dataCompareService.GetCountAsync(this.appConfiguration.EnvironmentSettings.Source.Type, entityMapping.SourceEntity);
@@ -34,6 +38,10 @@ namespace CompareDataTool.App
                 await this.GetDataToCompareAsync(this.appConfiguration.EnvironmentSettings.Source.Type, entityMapping.SourceEntity, entityMapping.PrimaryKeyMapping.SourcePrimaryKey, entityMapping.DestinationEntity);
                 await this.GetDataToCompareAsync(this.appConfiguration.EnvironmentSettings.Destination.Type, entityMapping.DestinationEntity, entityMapping.PrimaryKeyMapping.DestinationPrimaryKey, entityMapping.SourceEntity);
             }
+
+            this.stopwatch.Stop();
+            var timeTaken = $"{this.stopwatch.Elapsed.Hours:00}:{this.stopwatch.Elapsed.Minutes:00}:{this.stopwatch.Elapsed.Seconds:00}:{this.stopwatch.Elapsed.Milliseconds / 10:00}";
+            this.logger.LogInformation($"Total time taken: {timeTaken}");
         }
 
         private async Task GetDataToCompareAsync(string type, string sourceEntity, string sourcePrimaryKey, string destinationEntity)
@@ -68,8 +76,6 @@ namespace CompareDataTool.App
                         }
 
                         var exists = await this.dataCompareService.RecordExistsAsync(destinationType, destinationEntity, row[sourcePrimaryKey].ToString());
-
-
                         if (!exists)
                         {
                             await this.dataCompareService.SaveEntityRecordMismatchAsync(RunId, row[sourcePrimaryKey].ToString(), sourceEntity, type);
