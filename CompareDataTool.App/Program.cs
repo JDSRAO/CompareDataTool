@@ -18,7 +18,6 @@ namespace CompareDataTool.App
         public static async Task Main(string[] args)
         {
             var host = CreateHost();
-            await host.StartAsync();
             var logger = host.Services.GetService<ILogger<Program>>();
 
             try
@@ -32,7 +31,7 @@ namespace CompareDataTool.App
             }
 
             logger.LogInformation("The program has completed execution please press Ctrl+C to exit");
-            await host.WaitForShutdownAsync();
+            await host.RunAsync();
         }
 
         private static IHost CreateHost()
