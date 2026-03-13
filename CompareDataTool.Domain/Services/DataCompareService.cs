@@ -45,11 +45,6 @@ namespace CompareDataTool.Domain.Services
             return this.appDataRepository.InsertEntityCountMismatchAsync(runId, sourceEntity, destinationEntity, sourceCount, destinationCount);
         }
 
-        public Task SaveFieldMismatchAsync(string runId, string sourceEntity, string destinationEntity, int sourceCount, int destinationCount)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task SaveEntityRecordMismatchAsync(string runId, string rowId, string entity, string dataSourceType)
         {
             return this.appDataRepository.InsertEntityRecordMismatchAsync(runId, entity, rowId, dataSourceType == DataSourceTypes.Source, dataSourceType == DataSourceTypes.Destination);
