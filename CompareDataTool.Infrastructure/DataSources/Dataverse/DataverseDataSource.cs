@@ -48,6 +48,20 @@ namespace CompareDataTool.Infrastructure.DataSources.Dataverse
             return JsonConvert.DeserializeObject<IEnumerable<JObject>>(JsonConvert.SerializeObject(results));
         }
 
+        public async Task<JObject> GetDataAsync(string entity, string rowId)
+        {
+            var entityMapping = this.appConfiguration.EntityMappings.First(x => x.SourceEntity == entity);
+            var primaryColumn = entityMapping.PrimaryKeyMapping.SourcePrimaryKey;
+            var fields = entityMapping.FieldMappings.Select(x => x.SourceField);
+            var query = new StringBuilder();
+            query.Append($"SELECT {string.Join(",", fields)}");
+            query.AppendLine($"FROM {entity}");
+            query.AppendLine($"WHERE {primaryColumn} = '{rowId}'");
+            var results = await this.sqlManager.QueryAsync<object>(query.ToString());
+            var rows = JsonConvert.DeserializeObject<IEnumerable<JObject>>(JsonConvert.SerializeObject(results));
+            return rows.ElementAt(0);
+        }
+
         public async Task<bool> RecordExistsAsync(string entity, string rowId)
         {
             var entityMapping = this.appConfiguration.EntityMappings.First(x => x.SourceEntity == entity);

@@ -76,8 +76,13 @@ namespace CompareDataTool.App
                         }
 
                         var exists = await this.dataCompareService.RecordExistsAsync(destinationType, destinationEntity, row[sourcePrimaryKey].ToString());
-                        if (!exists)
+                        if (exists)
                         {
+                            var rowData = await this.dataCompareService.GetDataAsync(destinationType, destinationEntity, row[sourcePrimaryKey].ToString());
+                        }
+                        else
+                        {
+                            var rowData = await this.dataCompareService.GetDataAsync(destinationType, destinationEntity, row[sourcePrimaryKey].ToString());
                             this.logger.LogWarning("Mising record");
                             await this.dataCompareService.SaveEntityRecordMismatchAsync(RunId, row[sourcePrimaryKey].ToString(), sourceEntity, type);
                         }

@@ -23,6 +23,12 @@ namespace CompareDataTool.Domain.Services
             return dataRepository.GetDataAsync(entity, pageNumber, pageSize);
         }
 
+        public Task<JObject> GetDataAsync(string type, string entity, string rowId)
+        {
+            var dataRepository = this.dataSourceRepositoryFactory.GetDataSourceRepositoryService(type);
+            return dataRepository.GetDataAsync(entity, rowId);
+        }
+
         public Task SaveRowIdAsync(string runId, string type, string entity, string rowId)
         {
             return this.appDataRepository.SaveRowIdAsync(runId, type, entity, rowId);
