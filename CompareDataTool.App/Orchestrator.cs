@@ -85,7 +85,7 @@ namespace CompareDataTool.App
                                 var fieldCompareResult = this.dataCompareService.CompareValues(sourceRow, fieldMapping, destinationRow);
                                 if (!fieldCompareResult.Same)
                                 {
-                                    this.logger.LogDebug("Field Mismatchs");
+                                    this.logger.LogDebug("Field Mismatch");
                                     await this.dataCompareService.SaveEntityFieldMismatchAsync(this.runId, sourceEntity, destinationEntity, sourceRow[sourcePrimaryKey].ToString(), fieldMapping.SourceField, fieldMapping.DestinationField, fieldCompareResult.SourceValue, fieldCompareResult.DestinationValue);
                                 }
                             });
