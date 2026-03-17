@@ -12,6 +12,6 @@ namespace CompareDataTool.Domain.Interfaces
 
         public Task InsertEntityRecordMismatchAsync(string runId, string entity, string rowId, bool existsInSource, bool existsInDestination);
 
-        public Task InsertEntityFieldMismatchAsync();
+        public Task InsertEntityFieldMismatchAsync(string runId, string sourceEntity, string destinationEntity, string rowId, string sourceField, string destinationField, string sourceValue, string destinationValue);
     }
 }

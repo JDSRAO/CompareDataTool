@@ -56,9 +56,21 @@ namespace CompareDataTool.Domain.Services
             return this.appDataRepository.InsertEntityRecordMismatchAsync(runId, entity, rowId, dataSourceType == DataSourceTypes.Source, dataSourceType == DataSourceTypes.Destination);
         }
 
-        public Task SaveEntityFieldMismatchAsync(string runId, string sourceEntity, string destinationEntity, int sourceCount, int destinationCount)
+        public Task SaveEntityFieldMismatchAsync(string runId, string sourceEntity, string destinationEntity, string rowId, string sourceField, string destinationField, string sourceValue, string destinationValue)
         {
-            throw new NotImplementedException();
+            return this.appDataRepository.InsertEntityFieldMismatchAsync(runId, sourceEntity, destinationEntity, rowId, sourceField, destinationField, sourceValue, destinationValue);
+        }
+
+        public FieldCompareResult CompareValues(JObject sourceRow, FieldMapping fieldMapping, JObject destinationRow)
+        {
+            var sourceValue = Convert.ToString(sourceRow[fieldMapping.SourceField]);
+            var destinationValue = Convert.ToString(destinationRow[fieldMapping.DestinationField]);
+            return new FieldCompareResult
+            {
+               Same = sourceValue.Equals(destinationValue),
+               SourceValue = sourceValue,
+               DestinationValue = destinationValue,
+            };
         }
     }
 }

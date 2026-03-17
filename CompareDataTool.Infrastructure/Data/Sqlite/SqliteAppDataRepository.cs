@@ -1,11 +1,7 @@
 ﻿using CompareDataTool.Domain.Interfaces;
 using CompareDataTool.Domain.Models;
-using CompareDataTool.Infrastructure.Data.Sqlite.Models;
 using Newtonsoft.Json;
-using System;
-using System.Globalization;
 using System.Text;
-using static Dapper.SqlMapper;
 
 namespace CompareDataTool.Infrastructure.Data.Sqlite
 {
@@ -60,9 +56,26 @@ namespace CompareDataTool.Infrastructure.Data.Sqlite
             await this.sqLiteManager.ExecuteAsync(query.ToString(), inputs.ToArray());
         }
 
-        public Task InsertEntityFieldMismatchAsync()
+        public async Task InsertEntityFieldMismatchAsync(string runId, string sourceEntity, string destinationEntity, string rowId, string sourceField, string destinationField, string sourceValue, string destinationValue)
         {
-            throw new NotImplementedException();
+            var query = new StringBuilder();
+            query.AppendLine($"INSERT INTO EntityFieldMismatch (RunId,SourceEntity,DestinationEntity,RowId,SourceField,DestinationField,SourceValue,DestinationValue, CreatedOn)");
+            query.AppendLine("VALUES (@runId, @sourceEntity, @destinationEntity, @rowId, @sourceField, @destinationField, @sourceValue, @destinationValue, @createdOn)");
+
+            var inputs = new List<KeyValuePair<string, object>>
+            {
+                new KeyValuePair<string, object>("runId", runId),
+                new KeyValuePair<string, object>("sourceEntity", sourceEntity),
+                new KeyValuePair<string, object>("destinationEntity", destinationEntity),
+                new KeyValuePair<string, object>("rowId", rowId),
+                new KeyValuePair<string, object>("sourceField", sourceField),
+                new KeyValuePair<string, object>("destinationField", destinationField),
+                new KeyValuePair<string, object>("sourceValue", sourceValue),
+                new KeyValuePair<string, object>("destinationValue", destinationValue),
+                new KeyValuePair<string, object>("createdOn", DateTime.UtcNow.ToString("O")),
+            };
+
+            await this.sqLiteManager.ExecuteAsync(query.ToString(), inputs.ToArray());
         }
 
         public async Task InsertEntityRecordMismatchAsync(string runId, string entity, string rowId, bool existsInSource, bool existsInDestination)
