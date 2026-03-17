@@ -35,8 +35,8 @@ namespace CompareDataTool.App
                     this.logger.LogWarning("Count mismatch");
                     await this.dataCompareService.SaveRecordCountMismatchAsync(RunId, entityMapping.SourceEntity, entityMapping.DestinationEntity, sourceCount, destinationCount);
                 }
-                await this.GetDataToCompareAsync(this.appConfiguration.EnvironmentSettings.Source.Type, entityMapping.SourceEntity, entityMapping.PrimaryKeyMapping.SourcePrimaryKey, entityMapping.DestinationEntity);
-                await this.GetDataToCompareAsync(this.appConfiguration.EnvironmentSettings.Destination.Type, entityMapping.DestinationEntity, entityMapping.PrimaryKeyMapping.DestinationPrimaryKey, entityMapping.SourceEntity);
+                await this.GetDataToCompareAsync(this.appConfiguration.EnvironmentSettings.Source.Type, entityMapping.SourceEntity, entityMapping.PrimaryKeyMapping.SourcePrimaryKey, entityMapping.DestinationEntity, entityMapping.FieldMappings);
+                //await this.GetDataToCompareAsync(this.appConfiguration.EnvironmentSettings.Destination.Type, entityMapping.DestinationEntity, entityMapping.PrimaryKeyMapping.DestinationPrimaryKey, entityMapping.SourceEntity, entityMapping.FieldMappings);
             }
 
             this.stopwatch.Stop();
@@ -44,7 +44,7 @@ namespace CompareDataTool.App
             this.logger.LogInformation($"Total time taken: {timeTaken}");
         }
 
-        private async Task GetDataToCompareAsync(string type, string sourceEntity, string sourcePrimaryKey, string destinationEntity)
+        private async Task GetDataToCompareAsync(string type, string sourceEntity, string sourcePrimaryKey, string destinationEntity, FieldMapping[] fieldMappings)
         {
             this.logger.LogInformation($"Fetching data for type: {type} and entity: {sourceEntity} : Started");
             int pageNumber = 1;
@@ -82,7 +82,6 @@ namespace CompareDataTool.App
                         }
                         else
                         {
-                            var rowData = await this.dataCompareService.GetDataAsync(destinationType, destinationEntity, row[sourcePrimaryKey].ToString());
                             this.logger.LogWarning("Mising record");
                             await this.dataCompareService.SaveEntityRecordMismatchAsync(RunId, row[sourcePrimaryKey].ToString(), sourceEntity, type);
                         }
