@@ -61,7 +61,7 @@ namespace CompareDataTool.App
                 services.AddScoped<DataverseDataSource>();
                 services.AddScoped<SqlDataSource>();
                 services.AddScoped<DataCompareService>();
-                services.AddScoped<DataCompareService>();
+                services.AddScoped<ReportingService>();
             });
 
             return host.Build();

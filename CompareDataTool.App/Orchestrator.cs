@@ -13,16 +13,18 @@ namespace CompareDataTool.App
         private readonly AppConfiguration appConfiguration;
         private readonly ParallelOptions parallelOptions;
         private readonly ParallelOptions fieldCompareParallelOptions;
+        private readonly ReportingService reportingService;
 
         private readonly string runId = Guid.NewGuid().ToString();
         private Stopwatch stopwatch;
 
-        public Orchestrator(ILogger<Orchestrator> logger, DataCompareService dataCompareService, AppConfiguration appConfiguration)
+        public Orchestrator(ILogger<Orchestrator> logger, DataCompareService dataCompareService, AppConfiguration appConfiguration, ReportingService reportingService)
         {
             stopwatch = new Stopwatch();
             this.dataCompareService = dataCompareService;
             this.logger = logger;
             this.appConfiguration = appConfiguration;
+            this.reportingService = reportingService;
             this.parallelOptions = new ParallelOptions
             {
                 MaxDegreeOfParallelism = this.appConfiguration.CompareSettings.MaxDegreeOfParallelism,
@@ -48,6 +50,8 @@ namespace CompareDataTool.App
                 await this.GetDataToCompareAsync(this.appConfiguration.EnvironmentSettings.Source.Type, entityMapping.SourceEntity, entityMapping.PrimaryKeyMapping.SourcePrimaryKey, entityMapping.DestinationEntity, entityMapping.FieldMappings);
                 //await this.GetDataToCompareAsync(this.appConfiguration.EnvironmentSettings.Destination.Type, entityMapping.DestinationEntity, entityMapping.PrimaryKeyMapping.DestinationPrimaryKey, entityMapping.SourceEntity, entityMapping.FieldMappings);
             }
+
+            await this.reportingService.GenerateReportAsync(this.runId);
 
             this.stopwatch.Stop();
             var timeTaken = $"{this.stopwatch.Elapsed.Hours:00}:{this.stopwatch.Elapsed.Minutes:00}:{this.stopwatch.Elapsed.Seconds:00}:{this.stopwatch.Elapsed.Milliseconds / 10:00}";
