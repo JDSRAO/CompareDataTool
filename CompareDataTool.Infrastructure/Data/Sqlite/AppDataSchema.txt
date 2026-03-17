@@ -1,16 +1,3 @@
-DROP TABLE IF EXISTS AppData;
-
-CREATE TABLE "AppData" 
-(
-	"Id"	INTEGER UNIQUE,
-	"RunId"	TEXT,
-	"Type"	TEXT,
-	"Entity"	TEXT,
-	"Data"	TEXT,
-	"CreatedOn"	TEXT,
-	PRIMARY KEY("Id" AUTOINCREMENT)
-);
-
 DROP TABLE IF EXISTS "EntityData";
 
 CREATE TABLE "EntityData"
