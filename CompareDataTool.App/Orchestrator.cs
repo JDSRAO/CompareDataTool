@@ -12,6 +12,7 @@ namespace CompareDataTool.App
         private readonly DataCompareService dataCompareService;
         private readonly AppConfiguration appConfiguration;
         private readonly ParallelOptions parallelOptions;
+        private readonly ParallelOptions fieldCompareParallelOptions;
 
         private readonly string runId = Guid.NewGuid().ToString();
         private Stopwatch stopwatch;
@@ -25,6 +26,10 @@ namespace CompareDataTool.App
             this.parallelOptions = new ParallelOptions
             {
                 MaxDegreeOfParallelism = this.appConfiguration.CompareSettings.MaxDegreeOfParallelism,
+            };
+            this.fieldCompareParallelOptions = new ParallelOptions
+            {
+                MaxDegreeOfParallelism = 5,
             };
         }
 
@@ -80,7 +85,7 @@ namespace CompareDataTool.App
                         if (exists)
                         {
                             var destinationRow = await this.dataCompareService.GetDataAsync(destinationType, destinationEntity, sourceRow[sourcePrimaryKey].ToString());
-                            await Parallel.ForEachAsync(fieldMappings, this.parallelOptions, async (fieldMapping, _) =>
+                            await Parallel.ForEachAsync(fieldMappings, this.fieldCompareParallelOptions, async (fieldMapping, _) =>
                             {
                                 var fieldCompareResult = this.dataCompareService.CompareValues(sourceRow, fieldMapping, destinationRow);
                                 if (!fieldCompareResult.Same)
