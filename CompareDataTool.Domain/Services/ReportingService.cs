@@ -1,5 +1,6 @@
 ﻿using CompareDataTool.Domain.Interfaces;
 using CompareDataTool.Domain.Models;
+using System.Text;
 
 namespace CompareDataTool.Domain.Services
 {
@@ -14,9 +15,41 @@ namespace CompareDataTool.Domain.Services
             this.appDataRepository = appDataRepository;
         }
 
-        public async Task GenerateReport(string runId)
+        public async Task GenerateReportAsync(string runId)
         {
-            throw new NotImplementedException();
+            // get entity count mismatch
+
+            // get entity record mismatch
+
+            // get entity field mismatch
+        }
+
+        public string ToHtmlTable<T>(IEnumerable<T> list)
+        {
+            var properties = typeof(T).GetProperties();
+            var sb = new StringBuilder();
+            sb.Append("<table><thead><tr>");
+
+            // Create header row
+            foreach (var prop in properties)
+            {
+                sb.AppendFormat("<th>{0}</th>", prop.Name);
+            }
+            sb.Append("</tr></thead><tbody>");
+
+            // Create data rows
+            foreach (var item in list)
+            {
+                sb.Append("<tr>");
+                foreach (var prop in properties)
+                {
+                    sb.AppendFormat("<td>{0}</td>", prop.GetValue(item, null));
+                }
+                sb.Append("</tr>");
+            }
+
+            sb.Append("</tbody></table>");
+            return sb.ToString();
         }
     }
 }

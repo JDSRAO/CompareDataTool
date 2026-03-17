@@ -23,6 +23,36 @@ namespace CompareDataTool.Infrastructure.Data.Sqlite
             }
         }
 
+        public Task<IEnumerable<EntityCountMismatch>> GetCountMismatchesAsync(string runId, int pageNumber, int pageSize)
+        {
+            var query = new StringBuilder();
+            query.AppendLine($"SELECT RowId FROM EntityCountMismatch");
+            query.AppendLine($"ORDER BY Id");
+            query.AppendLine($"LIMIT {pageSize} OFFSET {(pageNumber - 1) * pageSize}");
+
+            return this.sqLiteManager.QueryAsync<EntityCountMismatch>(query.ToString());
+        }
+
+        public Task<IEnumerable<EntityFieldMismatch>> GetEntityFieldMismatchAsync(string runId, int pageNumber, int pageSize)
+        {
+            var query = new StringBuilder();
+            query.AppendLine($"SELECT RowId FROM EntityFieldMismatch");
+            query.AppendLine($"ORDER BY Id");
+            query.AppendLine($"LIMIT {pageSize} OFFSET {(pageNumber - 1) * pageSize}");
+
+            return this.sqLiteManager.QueryAsync<EntityFieldMismatch>(query.ToString());
+        }
+
+        public Task<IEnumerable<EntityRecordMismatch>> GetEntityRecordMismatchAsync(string runId, int pageNumber, int pageSize)
+        {
+            var query = new StringBuilder();
+            query.AppendLine($"SELECT RowId FROM EntityRecordMismatch");
+            query.AppendLine($"ORDER BY Id");
+            query.AppendLine($"LIMIT {pageSize} OFFSET {(pageNumber - 1) * pageSize}");
+
+            return this.sqLiteManager.QueryAsync<EntityRecordMismatch>(query.ToString());
+        }
+
         public async Task<IEnumerable<string>> GetRowIdAsync(string runId, string type, string entity, int pageNumber, int pageSize)
         {
             var query = new StringBuilder();
