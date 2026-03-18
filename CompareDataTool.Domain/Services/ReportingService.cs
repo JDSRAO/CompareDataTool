@@ -68,8 +68,8 @@ namespace CompareDataTool.Domain.Services
             reportTemplate = reportTemplate.Replace("@sourceEnvironment", this.appConfiguration.EnvironmentSettings.Source.Name);
             reportTemplate = reportTemplate.Replace("@destinationEnvrionment", this.appConfiguration.EnvironmentSettings.Destination.Name);
             reportTemplate = reportTemplate.Replace("@entityCountMismatches", ToHtmlTable(entityCountMismatches));
-            reportTemplate = reportTemplate.Replace("@entityRecordMismatches", ToHtmlTable(entityRecordMismatch));
-            reportTemplate = reportTemplate.Replace("@entityFieldMismatches", ToHtmlTable(entityFieldMismatch));
+            reportTemplate = reportTemplate.Replace("@entityRecordMismatches", ToHtmlTable(entityRecordMismatch.Take(10)));
+            reportTemplate = reportTemplate.Replace("@entityFieldMismatches", ToHtmlTable(entityFieldMismatch.Take(10)));
             //reportTemplate = reportTemplate.Replace("@reportGenerationTime", null);
 
             var reportContent = string.Format(reportTemplate, runId);
@@ -133,7 +133,7 @@ namespace CompareDataTool.Domain.Services
             // Create header row
             foreach (var prop in properties)
             {
-                table.AppendFormat("<th scope=\"col\">{0}</th>", prop.Name).AppendLine();
+                table.AppendFormat("<th scope=\"col\" class=\"text-center\">{0}</th>", prop.Name).AppendLine();
             }
             table.AppendLine("</tr></thead><tbody>");
 
