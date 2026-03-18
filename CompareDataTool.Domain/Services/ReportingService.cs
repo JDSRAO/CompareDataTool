@@ -9,7 +9,7 @@ namespace CompareDataTool.Domain.Services
         private readonly IAppDataRepository appDataRepository;
         private readonly AppConfiguration appConfiguration;
         private string reportTemplatePath = Path.Combine(Directory.GetCurrentDirectory(), "report.html");
-        private string reportPath = Path.Combine(Directory.GetCurrentDirectory(), $"report-{DateTime.Now.ToString("yyyy-mm-dd")}.html");
+        private string reportPath = Path.Combine(Directory.GetCurrentDirectory(), $"report-{DateTime.Now.ToString("yyyy-MM-dd")}.html");
 
         public ReportingService(IAppDataRepository appDataRepository, AppConfiguration appConfiguration)
         {
@@ -59,27 +59,81 @@ namespace CompareDataTool.Domain.Services
 
             //</html>";
 
+            List<EntityCountMismatch> entityCountMismatches = await this.GetEntityCountDiscrepenciesAsync(runId);
+            List<EntityRecordMismatch> entityRecordMismatch = await this.GetEntityRecordMismatchtDiscrepenciesAsync(runId);
+            List<EntityFieldMismatch> entityFieldMismatch = await this.GetEntityFieldMismatchDiscrepenciesAsync(runId);
+
             var reportTemplate = await File.ReadAllTextAsync(reportTemplatePath);
             reportTemplate = reportTemplate.Replace("@reportGenerationTime", DateTime.UtcNow.ToString("O"));
             reportTemplate = reportTemplate.Replace("@sourceEnvironment", this.appConfiguration.EnvironmentSettings.Source.Name);
             reportTemplate = reportTemplate.Replace("@destinationEnvrionment", this.appConfiguration.EnvironmentSettings.Destination.Name);
-            reportTemplate = reportTemplate.Replace("@reportGenerationTime", null);
-            reportTemplate = reportTemplate.Replace("@reportGenerationTime", null);
+            reportTemplate = reportTemplate.Replace("@entityCountMismatches", ToHtmlTable(entityCountMismatches));
+            reportTemplate = reportTemplate.Replace("@entityRecordMismatches", ToHtmlTable(entityRecordMismatch));
+            reportTemplate = reportTemplate.Replace("@entityFieldMismatches", ToHtmlTable(entityFieldMismatch));
+            //reportTemplate = reportTemplate.Replace("@reportGenerationTime", null);
 
             var reportContent = string.Format(reportTemplate, runId);
             await File.WriteAllTextAsync(reportPath, reportContent);
+        }
+
+        private async Task<List<EntityCountMismatch>> GetEntityCountDiscrepenciesAsync(string runId)
+        {
+            int pageNumber = 1;
+            List<EntityCountMismatch> entityCountMismatches = new List<EntityCountMismatch>();
+            IEnumerable<EntityCountMismatch> currentEntityCountMismatches;
+            do
+            {
+                currentEntityCountMismatches = await this.appDataRepository.GetCountMismatchesAsync(runId, pageNumber, this.appConfiguration.CompareSettings.PageSize);
+                entityCountMismatches.AddRange(currentEntityCountMismatches);
+                pageNumber++;
+
+            }
+            while (currentEntityCountMismatches.Any());
+            return entityCountMismatches;
+        }
+
+        private async Task<List<EntityRecordMismatch>> GetEntityRecordMismatchtDiscrepenciesAsync(string runId)
+        {
+            int pageNumber = 1;
+            var entityCountMismatches = new List<EntityRecordMismatch>();
+            IEnumerable<EntityRecordMismatch> currentEntityCountMismatches;
+            do
+            {
+                currentEntityCountMismatches = await this.appDataRepository.GetEntityRecordMismatchAsync(runId, pageNumber, this.appConfiguration.CompareSettings.PageSize);
+                entityCountMismatches.AddRange(currentEntityCountMismatches);
+                pageNumber++;
+
+            }
+            while (currentEntityCountMismatches.Any());
+            return entityCountMismatches;
+        }
+
+        private async Task<List<EntityFieldMismatch>> GetEntityFieldMismatchDiscrepenciesAsync(string runId)
+        {
+            int pageNumber = 1;
+            var entityCountMismatches = new List<EntityFieldMismatch>();
+            IEnumerable<EntityFieldMismatch> currentEntityCountMismatches;
+            do
+            {
+                currentEntityCountMismatches = await this.appDataRepository.GetEntityFieldMismatchAsync(runId, pageNumber, this.appConfiguration.CompareSettings.PageSize);
+                entityCountMismatches.AddRange(currentEntityCountMismatches);
+                pageNumber++;
+
+            }
+            while (currentEntityCountMismatches.Any());
+            return entityCountMismatches;
         }
 
         public string ToHtmlTable<T>(IEnumerable<T> list)
         {
             var properties = typeof(T).GetProperties();
             var table = new StringBuilder();
-            table.AppendLine("<table><thead><tr>");
+            table.AppendLine("<table class=\"table table-responsive table-bordered table-striped table-hover\"><thead><tr>");
 
             // Create header row
             foreach (var prop in properties)
             {
-                table.AppendFormat("<th>{0}</th>", prop.Name).AppendLine();
+                table.AppendFormat("<th scope=\"col\">{0}</th>", prop.Name).AppendLine();
             }
             table.AppendLine("</tr></thead><tbody>");
 
