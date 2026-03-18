@@ -6,21 +6,29 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
 
-    <title></title>
+    <title>Data Reconciliation Report</title>
 </head>
 <body>
     
     <!--Summary Section-->
     <div clas="container">
-        <div class"row">
-            <div class="col">
+        <div class="row justify-content-center">
+            <div class="col-6 mx-auto">
+                <h2 class="pb-2 border-bottom">Report Summary</h2>
                 <section>
-                    <p> Report Generated at : @reportGenerationTime UTC </p>
+                    <h3 class="fw-bold text-body-emphasis"> Report Generated at : @reportGenerationTime UTC </h3>
+                    <p class="text-center"> Report Generated at : @reportGenerationTime UTC </p>
                 </section>
             </div>
         </div>
 
-        <div class"row">
+        
+        <div class="row">
+            <div class="row">
+                <div class="col-6 mx-auto">
+                    <h2 class="pb-2 border-bottom">Environment Information</h2>
+                </div>
+            </div>
             <div class="col-6">
                 <section>
                     <p> Source Environment : @sourceEnvironment </p>
@@ -34,6 +42,32 @@
         </div>
     </div>
 
+    <!--Discrepencies Section-->
+    <div clas="container">
+        <div class="row">
+            <div class="col-6 mx-auto">
+                @entityCountMismatches
+            </div>
+        </div>
+    </div>
+    
+    <div clas="container">
+        <div class="row">
+            <div class="col-6 mx-auto">
+                @entityRecordMismatches
+            </div>
+        </div>
+    </div>
+    
+
+    <div clas="container">
+        <div class="row">
+            <div class="col-6 mx-auto">
+                @entityFieldMismatches
+            </div>
+        </div>    
+    </div>
+    
 
 </body>
 </html>
