@@ -13,6 +13,7 @@
     <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageReference Include="Serilog.Sinks.MSSqlServer" Version="9.0.3" />
     <PackageReference Include="Serilog.Sinks.SQLite" Version="6.0.0" />
+    <PackageReference Include="ShellProgressBar" Version="5.2.0" />
   </ItemGroup>
 
   <ItemGroup>
