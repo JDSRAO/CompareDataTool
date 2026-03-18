@@ -1,5 +1,7 @@
 ﻿using CompareDataTool.Domain.Interfaces;
 using CompareDataTool.Domain.Models;
+using CsvHelper;
+using System.Globalization;
 using System.Text;
 
 namespace CompareDataTool.Domain.Services
@@ -9,12 +11,16 @@ namespace CompareDataTool.Domain.Services
         private readonly IAppDataRepository appDataRepository;
         private readonly AppConfiguration appConfiguration;
         private string reportTemplatePath = Path.Combine(Directory.GetCurrentDirectory(), "report.html");
-        private string reportPath = Path.Combine(Directory.GetCurrentDirectory(), $"report-{DateTime.Now.ToString("yyyy-MM-dd")}.html");
+        private readonly string reportBasePath = Path.Combine(Directory.GetCurrentDirectory(), "reports");
 
         public ReportingService(IAppDataRepository appDataRepository, AppConfiguration appConfiguration)
         {
             this.appConfiguration = appConfiguration;
             this.appDataRepository = appDataRepository;
+            if (!Directory.Exists(reportBasePath)) 
+            {
+                Directory.CreateDirectory(reportBasePath);
+            }
         }
 
         public async Task GenerateReportAsync(string runId)
@@ -67,13 +73,29 @@ namespace CompareDataTool.Domain.Services
             reportTemplate = reportTemplate.Replace("@reportGenerationTime", DateTime.UtcNow.ToString("O"));
             reportTemplate = reportTemplate.Replace("@sourceEnvironment", this.appConfiguration.EnvironmentSettings.Source.Name);
             reportTemplate = reportTemplate.Replace("@destinationEnvrionment", this.appConfiguration.EnvironmentSettings.Destination.Name);
-            reportTemplate = reportTemplate.Replace("@entityCountMismatches", ToHtmlTable(entityCountMismatches));
-            reportTemplate = reportTemplate.Replace("@entityRecordMismatches", ToHtmlTable(entityRecordMismatch.Take(10)));
-            reportTemplate = reportTemplate.Replace("@entityFieldMismatches", ToHtmlTable(entityFieldMismatch.Take(10)));
+            reportTemplate = reportTemplate.Replace("@entityCountMismatches", this.ToHtmlTable(entityCountMismatches, entityRecordMismatch.Count));
+            reportTemplate = reportTemplate.Replace("@entityRecordMismatches", this.ToHtmlTable(entityRecordMismatch.Take(10).ToList(), entityRecordMismatch.Count));
+            reportTemplate = reportTemplate.Replace("@entityFieldMismatches", this.ToHtmlTable(entityFieldMismatch.Take(10).ToList(), entityRecordMismatch.Count));
             //reportTemplate = reportTemplate.Replace("@reportGenerationTime", null);
 
             var reportContent = string.Format(reportTemplate, runId);
+            var reportPath = Path.Combine(reportBasePath, $"report-{DateTime.Now.ToString("yyyy-MM-dd")}.html");
             await File.WriteAllTextAsync(reportPath, reportContent);
+            
+            await this.GenerateCsvReportAsync(entityRecordMismatch, $"entityRecordMismatch-{DateTime.Now.ToString("yyyy-MM-dd")}.csv");
+            await this.GenerateCsvReportAsync(entityFieldMismatch, $"entityFieldMismatch-{DateTime.Now.ToString("yyyy-MM-dd")}.csv");
+        }
+
+        private async Task GenerateCsvReportAsync<T>(List<T> data, string fileName)
+        {
+            // Define the path for your CSV file
+            string filePath = Path.Combine(reportBasePath, fileName);
+            // Wrap IDisposable objects in 'using' blocks to ensure they are disposed of properly
+            using (var writer = new StreamWriter(filePath))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            {
+                await csv.WriteRecordsAsync(data);
+            }
         }
 
         private async Task<List<EntityCountMismatch>> GetEntityCountDiscrepenciesAsync(string runId)
@@ -124,11 +146,11 @@ namespace CompareDataTool.Domain.Services
             return entityCountMismatches;
         }
 
-        public string ToHtmlTable<T>(IEnumerable<T> list)
+        public string ToHtmlTable<T>(List<T> list, int totalCount)
         {
             var properties = typeof(T).GetProperties();
             var table = new StringBuilder();
-            table.AppendLine("<table class=\"table table-responsive table-bordered table-striped table-hover\"><thead><tr>");
+            table.AppendLine($"<table class=\"table table-responsive table-bordered table-striped table-hover\"> <caption> Showing {list.Count}/{totalCount} discrepencies </caption> <thead><tr>");
 
             // Create header row
             foreach (var prop in properties)
