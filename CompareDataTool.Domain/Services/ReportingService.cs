@@ -73,9 +73,9 @@ namespace CompareDataTool.Domain.Services
             reportTemplate = reportTemplate.Replace("@reportGenerationTime", DateTime.UtcNow.ToString("O"));
             reportTemplate = reportTemplate.Replace("@sourceEnvironment", this.appConfiguration.EnvironmentSettings.Source.Name);
             reportTemplate = reportTemplate.Replace("@destinationEnvrionment", this.appConfiguration.EnvironmentSettings.Destination.Name);
-            reportTemplate = reportTemplate.Replace("@entityCountMismatches", this.ToHtmlTable(entityCountMismatches, entityRecordMismatch.Count));
+            reportTemplate = reportTemplate.Replace("@entityCountMismatches", this.ToHtmlTable(entityCountMismatches, entityCountMismatches.Count));
             reportTemplate = reportTemplate.Replace("@entityRecordMismatches", this.ToHtmlTable(entityRecordMismatch.Take(10).ToList(), entityRecordMismatch.Count));
-            reportTemplate = reportTemplate.Replace("@entityFieldMismatches", this.ToHtmlTable(entityFieldMismatch.Take(10).ToList(), entityRecordMismatch.Count));
+            reportTemplate = reportTemplate.Replace("@entityFieldMismatches", this.ToHtmlTable(entityFieldMismatch.Take(10).ToList(), entityFieldMismatch.Count));
             //reportTemplate = reportTemplate.Replace("@reportGenerationTime", null);
 
             var reportContent = string.Format(reportTemplate, runId);
