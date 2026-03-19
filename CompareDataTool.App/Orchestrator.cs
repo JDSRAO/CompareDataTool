@@ -29,7 +29,10 @@ namespace CompareDataTool.App
             {
                 MaxDegreeOfParallelism = this.appConfiguration.CompareSettings.MaxDegreeOfParallelism,
             };
-            this.fieldCompareParallelOptions = this.parallelOptions;
+            this.fieldCompareParallelOptions = new ParallelOptions
+            {
+                MaxDegreeOfParallelism = 10,
+            };
         }
 
         public async Task RunAsync()
