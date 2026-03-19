@@ -7,6 +7,8 @@ namespace CompareDataTool.Infrastructure.Data.Sqlite
 {
     internal class SqLiteManager
     {
+        private const int timeout = 60;
+
         private readonly string connectionString;
 
         public SqLiteManager(string connectionString)
@@ -52,7 +54,7 @@ namespace CompareDataTool.Infrastructure.Data.Sqlite
         {
             using (var connection = new SqliteConnection(connectionString))
             {
-                return await connection.QueryAsync<T>(sql);
+                return await connection.QueryAsync<T>(sql, param: null, transaction: null, commandTimeout: timeout);
             }
         }
 
@@ -95,6 +97,7 @@ namespace CompareDataTool.Infrastructure.Data.Sqlite
             {
                 connection.Open();
                 var command = connection.CreateCommand();
+                command.CommandTimeout = timeout;
                 command.CommandText = sql;
                 foreach (var input in inputs)
                 {
