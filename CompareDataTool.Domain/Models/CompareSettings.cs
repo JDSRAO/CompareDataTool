@@ -11,5 +11,7 @@
         public bool ConvertToLowerAndCompare { get; set; } = default!;
 
         public string AppDataFile { get; set; } = default!;
+
+        public bool SnapshotRowId { get; set; } = default!;
     }
 }

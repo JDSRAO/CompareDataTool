@@ -51,7 +51,10 @@ namespace CompareDataTool.App
                 //await this.GetDataToCompareAsync(this.appConfiguration.EnvironmentSettings.Destination.Type, entityMapping.DestinationEntity, entityMapping.PrimaryKeyMapping.DestinationPrimaryKey, entityMapping.SourceEntity, entityMapping.FieldMappings);
             }
 
-            await this.reportingService.GenerateReportAsync(this.runId);
+            this.logger.LogInformation("Generating data reconciliation report : Start");
+            var reportPath = await this.reportingService.GenerateReportAsync(this.runId);
+            this.logger.LogInformation("Generating data reconciliation report : Completed");
+            this.logger.LogInformation($"Reports generated at {reportPath}");
 
             this.stopwatch.Stop();
             var timeTaken = $"{this.stopwatch.Elapsed.Hours:00}:{this.stopwatch.Elapsed.Minutes:00}:{this.stopwatch.Elapsed.Seconds:00}:{this.stopwatch.Elapsed.Milliseconds / 10:00}";
@@ -73,7 +76,10 @@ namespace CompareDataTool.App
                     try
                     {
                         this.logger.LogInformation("*");
-                        await this.dataCompareService.SaveRowIdAsync(this.runId, type, sourceEntity, sourceRow[sourcePrimaryKey].ToString());
+                        if (this.appConfiguration.CompareSettings.SnapshotRowId)
+                        {
+                            await this.dataCompareService.SaveRowIdAsync(this.runId, type, sourceEntity, sourceRow[sourcePrimaryKey].ToString());
+                        }
 
                         var destinationType = type;
                         if (type == DataSourceTypes.Source)

@@ -23,7 +23,7 @@ namespace CompareDataTool.Domain.Services
             }
         }
 
-        public async Task GenerateReportAsync(string runId)
+        public async Task<string> GenerateReportAsync(string runId)
         {
             // get entity count mismatch
 
@@ -84,6 +84,8 @@ namespace CompareDataTool.Domain.Services
             
             await this.GenerateCsvReportAsync(entityRecordMismatch, $"entityRecordMismatch-{DateTime.Now.ToString("yyyy-MM-dd")}.csv");
             await this.GenerateCsvReportAsync(entityFieldMismatch, $"entityFieldMismatch-{DateTime.Now.ToString("yyyy-MM-dd")}.csv");
+
+            return reportBasePath;
         }
 
         private async Task GenerateCsvReportAsync<T>(List<T> data, string fileName)
