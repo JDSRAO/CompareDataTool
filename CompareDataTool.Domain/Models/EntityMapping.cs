@@ -9,5 +9,7 @@
         public PrimaryKeyMapping PrimaryKeyMapping { get; set; } = default!;
 
         public FieldMapping[] FieldMappings { get; set; } = default!;
+
+        public Filters Filters { get; set; } = default!;
     }
 }

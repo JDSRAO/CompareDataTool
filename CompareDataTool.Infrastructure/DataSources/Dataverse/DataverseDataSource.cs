@@ -39,6 +39,10 @@ namespace CompareDataTool.Infrastructure.DataSources.Dataverse
             var query = new StringBuilder();
             query.AppendLine($"SELECT {string.Join(",", fields)}");
             query.AppendLine($"FROM {entity}");
+            if (entityMapping.Filters != null && !string.IsNullOrEmpty(entityMapping.Filters.SourceFilter))
+            {
+                query.AppendLine($"WHERE {entityMapping.Filters.SourceFilter}");
+            }
             query.AppendLine($"ORDER BY {primaryColumn}");
             query.AppendLine($"OFFSET {(pageNumber - 1) * pageSize} ROWS");
             query.AppendLine($"FETCH NEXT {pageSize} ROWS ONLY");
