@@ -63,7 +63,14 @@ namespace CompareDataTool.Infrastructure.DataSources.Dataverse
             query.AppendLine($"WHERE {primaryColumn} = '{rowId}'");
             var results = await this.sqlManager.QueryAsync<object>(query.ToString());
             var rows = JsonConvert.DeserializeObject<IEnumerable<JObject>>(JsonConvert.SerializeObject(results));
-            return rows.ElementAt(0);
+            if (rows != null && rows.Any())
+            {
+                return rows.ElementAt(0);
+            }
+            else
+            {
+                return new JObject();
+            }
         }
 
         public async Task<bool> RecordExistsAsync(string entity, string rowId)

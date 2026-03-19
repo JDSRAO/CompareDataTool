@@ -91,10 +91,10 @@ namespace CompareDataTool.App
                             destinationType = DataSourceTypes.Source;
                         }
 
-                        var exists = await this.dataCompareService.RecordExistsAsync(destinationType, destinationEntity, sourceRow[sourcePrimaryKey].ToString());
+                        //var exists = await this.dataCompareService.RecordExistsAsync(destinationType, destinationEntity, sourceRow[sourcePrimaryKey].ToString());
+                        var (exists, destinationRow) = await this.dataCompareService.GetDataAsync(destinationType, destinationEntity, sourceRow[sourcePrimaryKey].ToString());
                         if (exists)
                         {
-                            var destinationRow = await this.dataCompareService.GetDataAsync(destinationType, destinationEntity, sourceRow[sourcePrimaryKey].ToString());
                             await Parallel.ForEachAsync(fieldMappings, this.fieldCompareParallelOptions, async (fieldMapping, _) =>
                             {
                                 var fieldCompareResult = this.dataCompareService.CompareValues(sourceRow, fieldMapping, destinationRow);
