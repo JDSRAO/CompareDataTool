@@ -8,7 +8,7 @@ CREATE TABLE "EntityData"
 	"Entity"	TEXT,
 	"RowId"	TEXT,
 	"CreatedOn"	TEXT,
-	PRIMARY KEY("Id" AUTOINCREMENT)
+	PRIMARY KEY("Id")
 );
 
 DROP TABLE IF EXISTS "EntityCountMismatch";
@@ -22,7 +22,7 @@ CREATE TABLE "EntityCountMismatch"
 	"SourceCount"	INTEGER,
 	"DestinationCount"	INTEGER,
 	"CreatedOn"	TEXT,
-	PRIMARY KEY("Id" AUTOINCREMENT)
+	PRIMARY KEY("Id")
 );
 
 DROP TABLE IF EXISTS "EntityRecordMismatch";
@@ -36,7 +36,7 @@ CREATE TABLE "EntityRecordMismatch"
 	"ExistsInSource"	INTEGER,
 	"ExistsInDestination"	INTEGER,
 	"CreatedOn"	TEXT,
-	PRIMARY KEY("Id" AUTOINCREMENT)
+	PRIMARY KEY("Id")
 );
 
 DROP TABLE IF EXISTS "EntityFieldMismatch";
@@ -53,5 +53,5 @@ CREATE TABLE "EntityFieldMismatch"
 	"SourceValue"	TEXT,
 	"DestinationValue"	TEXT,
 	"CreatedOn"	TEXT,
-	PRIMARY KEY("Id" AUTOINCREMENT)
+	PRIMARY KEY("Id")
 );
