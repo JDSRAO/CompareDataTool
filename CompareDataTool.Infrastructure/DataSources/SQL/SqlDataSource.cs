@@ -32,7 +32,7 @@ namespace CompareDataTool.Infrastructure.DataSources.SQL
             var primaryColumn = entityMapping.PrimaryKeyMapping.DestinationPrimaryKey;
             var fields = entityMapping.FieldMappings.Select(x => x.DestinationField);
             var query = new StringBuilder();
-            query.AppendLine($"SELECT {string.Join(",", fields)}");
+            query.AppendLine($"SELECT {string.Join(",", fields)}, {primaryColumn}");
             query.AppendLine($"FROM {entity}");
             if (entityMapping.Filters != null && !string.IsNullOrEmpty(entityMapping.Filters.DestinationFilter))
             {
@@ -53,7 +53,7 @@ namespace CompareDataTool.Infrastructure.DataSources.SQL
             var primaryColumn = entityMapping.PrimaryKeyMapping.DestinationPrimaryKey;
             var fields = entityMapping.FieldMappings.Select(x => x.DestinationField);
             var query = new StringBuilder();
-            query.AppendLine($"SELECT {string.Join(",", fields)}");
+            query.AppendLine($"SELECT {string.Join(",", fields)}, {primaryColumn}");
             query.AppendLine($"FROM {entity}");
             query.AppendLine($"WHERE {primaryColumn} = '{rowId}'");
             var results = await this.sqlManager.QueryAsync<object>(query.ToString());
