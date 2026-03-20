@@ -58,8 +58,8 @@ namespace CompareDataTool.App
                 services.AddSingleton<IDataSourceRepositoryFactory, DataSourceFactory>();
 
                 services.AddScoped<IAppDataRepository, SqliteAppDataRepository>();
-                services.AddScoped<DataverseDataSource>();
-                services.AddScoped<SqlDataSource>();
+                services.AddSingleton<DataverseDataSource>();
+                services.AddSingleton<SqlDataSource>();
                 services.AddScoped<DataCompareService>();
                 services.AddScoped<ReportingService>();
             });

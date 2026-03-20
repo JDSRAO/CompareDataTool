@@ -48,11 +48,18 @@ namespace CompareDataTool.Infrastructure.DataSources.SQL
             }
         }
 
-        public async Task<IEnumerable<T>> QueryAsync<T>(string sql)
+        public async Task<IEnumerable<T>> QueryAsync<T>(string sql, bool buffered = false)
         {
             using (var connection = new SqlConnection(connectionString))
             {
-                return await connection.QueryAsync<T>(sql);
+                if (buffered)
+                {
+                    return connection.Query<T>(sql, buffered: false);
+                }
+                else
+                {
+                    return await connection.QueryAsync<T>(sql);
+                }
             }
         }
 

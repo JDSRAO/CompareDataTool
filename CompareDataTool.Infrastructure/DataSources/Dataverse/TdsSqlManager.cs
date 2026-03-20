@@ -7,7 +7,7 @@ using System.Data;
 
 namespace CompareDataTool.Infrastructure.DataSources.Dataverse
 {
-    public class TdsSqlManager
+    public class TdsSqlManager : IDisposable
     {
         private static HttpClient client = new HttpClient();
         private const int timeout = 60;
@@ -20,6 +20,7 @@ namespace CompareDataTool.Infrastructure.DataSources.Dataverse
 
         private string token = string.Empty;
         private DateTime tokenExpiry;
+        private SqlConnection sqlConnection;
 
         public TdsSqlManager(string connectionString, string url, string tenantId, string clientId, string clientSecret)
         {
@@ -28,6 +29,7 @@ namespace CompareDataTool.Infrastructure.DataSources.Dataverse
             this.clientId = clientId;
             this.clientSecret = clientSecret;
             this.url = url;
+            this.sqlConnection = new SqlConnection(connectionString);
         }
 
         public async Task CreateTableIfNotExists(string tableSchema)
@@ -66,12 +68,34 @@ namespace CompareDataTool.Infrastructure.DataSources.Dataverse
             }
         }
 
-        public async Task<IEnumerable<T>> QueryAsync<T>(string sql)
+        //public async Task<IEnumerable<T>> QueryAsync<T>(string sql, bool buffered = true)
+        //{
+        //    using (var connection = new SqlConnection(connectionString))
+        //    {
+        //        connection.AccessToken = await this.GetAuthHeaderValueAsync();
+        //        if (buffered)
+        //        {
+        //            //return await connection.QueryUnbufferedAsync<T>(sql, param: null, transaction: null);
+        //            return connection.Query<T>(sql, param: null, transaction: null, buffered: false);
+        //        }
+        //        else
+        //        {
+        //            return await connection.QueryAsync<T>(sql, param: null, transaction: null, commandTimeout: timeout);
+        //        }
+        //    }
+        //}
+
+        public async Task<IEnumerable<T>> QueryAsync<T>(string sql, bool buffered = false)
         {
-            using (var connection = new SqlConnection(connectionString))
+            this.sqlConnection.AccessToken = await this.GetAuthHeaderValueAsync();
+            if (buffered)
             {
-                connection.AccessToken = await this.GetAuthHeaderValueAsync();
-                return await connection.QueryAsync<T>(sql, param: null, transaction: null, commandTimeout: timeout);
+                //return await connection.QueryUnbufferedAsync<T>(sql, param: null, transaction: null);
+                return sqlConnection.Query<T>(sql, param: null, transaction: null, buffered: buffered);
+            }
+            else
+            {
+                return await sqlConnection.QueryAsync<T>(sql, param: null, transaction: null, commandTimeout: timeout);
             }
         }
 
@@ -145,6 +169,11 @@ namespace CompareDataTool.Infrastructure.DataSources.Dataverse
             tokenExpiry = DateTime.UtcNow.AddMinutes(tokenResponse.ExpiresIn / 60 - 30);
 
             return tokenResponse.AccessToken;
+        }
+
+        public void Dispose()
+        {
+            this.sqlConnection.Dispose();
         }
 
         private class TokenResponse
