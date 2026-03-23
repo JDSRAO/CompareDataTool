@@ -25,50 +25,32 @@ namespace CompareDataTool.Domain.Services
 
         public async Task<string> GenerateReportAsync(string runId)
         {
-            // get entity count mismatch
+            var reportTasks = new List<Task>(this.appConfiguration.EntityMappings.Length);
+            foreach (var entityMapping in this.appConfiguration.EntityMappings)
+            {
+                reportTasks.Add(GenerateRrpotsAsync(runId, entityMapping));
+            }
 
-            // get entity record mismatch
+            await Task.WhenAll(reportTasks);
+            return reportBasePath;
+        }
 
-            // get entity field mismatch
-
-            //var reportRaw = $@"
-            //<!DOCTYPE html>               
-            //<html>
-            //<head>
-            //    <meta charset=""utf-8"">
-            //    <link href=""https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"" rel=""stylesheet"" integrity=""sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"" crossorigin=""anonymous"">
-            //    <script src=""https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"" integrity=""sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"" crossorigin=""anonymous""></script>
-            //    <title>Data reconciliation report</title>
-            //</head>
-            //    <div clas=""container"">
-            //            <div class""row"">
-            //                <div class=""col"">
-            //                    <section>
-            //                        <p> Report Generated at : {DateTime.UtcNow.ToString("O")} UTC </p>
-            //                    </section>
-            //                </div>
-            //            </div>
-
-            //        <div class""row"">
-            //                <div class=""col-6"">
-            //                    <section>
-            //                        <p> Source Environment : {this.appConfiguration.EnvironmentSettings.Source.Name}</p>
-            //                    </section>
-            //                </div>
-            //                <div class=""col-6"">
-            //                    <section>
-            //                        <p> Destination Environment : {this.appConfiguration.EnvironmentSettings.Destination.Name} </p>
-            //                    </section>
-            //                </div>
-            //            </div>
-            //        </div>
-
-            //</html>";
-
+        private async Task GenerateRrpotsAsync(string runId, EntityMapping entityMapping)
+        {
             List<EntityCountMismatch> entityCountMismatches = await this.GetEntityCountDiscrepenciesAsync(runId);
             List<EntityRecordMismatch> entityRecordMismatch = await this.GetEntityRecordMismatchtDiscrepenciesAsync(runId);
             List<EntityFieldMismatch> entityFieldMismatch = await this.GetEntityFieldMismatchDiscrepenciesAsync(runId);
 
+            await GenerateHtmlSummaryAsync(runId, entityCountMismatches, entityRecordMismatch, entityFieldMismatch);
+
+            await this.GenerateCsvReportAsync(entityRecordMismatch, $"entityRecordMismatch-{entityMapping.SourceEntity}-{DateTime.Now.ToString("yyyy-MM-dd")}.csv");
+            await this.GenerateCsvReportAsync(entityRecordMismatch, $"entityRecordMismatch-{entityMapping.DestinationEntity}-{DateTime.Now.ToString("yyyy-MM-dd")}.csv");
+
+            await this.GenerateCsvReportAsync(entityFieldMismatch, $"entityFieldMismatch-{entityMapping.SourceEntity}-{DateTime.Now.ToString("yyyy-MM-dd")}.csv");
+        }
+
+        private async Task GenerateHtmlSummaryAsync(string runId, List<EntityCountMismatch> entityCountMismatches, List<EntityRecordMismatch> entityRecordMismatch, List<EntityFieldMismatch> entityFieldMismatch)
+        {
             var reportTemplate = await File.ReadAllTextAsync(reportTemplatePath);
             reportTemplate = reportTemplate.Replace("@reportGenerationTime", DateTime.UtcNow.ToString("O"));
             reportTemplate = reportTemplate.Replace("@sourceEnvironment", this.appConfiguration.EnvironmentSettings.Source.Name);
@@ -81,11 +63,6 @@ namespace CompareDataTool.Domain.Services
             var reportContent = string.Format(reportTemplate, runId);
             var reportPath = Path.Combine(reportBasePath, $"report-{DateTime.Now.ToString("yyyy-MM-dd")}.html");
             await File.WriteAllTextAsync(reportPath, reportContent);
-            
-            await this.GenerateCsvReportAsync(entityRecordMismatch, $"entityRecordMismatch-{DateTime.Now.ToString("yyyy-MM-dd")}.csv");
-            await this.GenerateCsvReportAsync(entityFieldMismatch, $"entityFieldMismatch-{DateTime.Now.ToString("yyyy-MM-dd")}.csv");
-
-            return reportBasePath;
         }
 
         private async Task GenerateCsvReportAsync<T>(List<T> data, string fileName)
