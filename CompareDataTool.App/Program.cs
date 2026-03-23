@@ -63,6 +63,7 @@ namespace CompareDataTool.App
                 services.AddScoped<DataCompareService>();
                 services.AddScoped<ReportingService>();
                 services.AddScoped<DataSourceService>();
+                services.AddScoped<AppDataService>();
             });
 
             return host.Build();

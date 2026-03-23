@@ -15,11 +15,12 @@ namespace CompareDataTool.App
         private readonly ParallelOptions fieldCompareParallelOptions;
         private readonly ReportingService reportingService;
         private readonly DataSourceService dataSourceService;
+        private readonly AppDataService appDataService;
 
         private readonly string runId = Guid.NewGuid().ToString();
         private Stopwatch stopwatch;
 
-        public Orchestrator(ILogger<Orchestrator> logger, DataCompareService dataCompareService, AppConfiguration appConfiguration, ReportingService reportingService, DataSourceService dataSourceService)
+        public Orchestrator(ILogger<Orchestrator> logger, DataCompareService dataCompareService, AppConfiguration appConfiguration, ReportingService reportingService, DataSourceService dataSourceService, AppDataService appDataService)
         {
             stopwatch = new Stopwatch();
             this.dataCompareService = dataCompareService;
@@ -27,6 +28,7 @@ namespace CompareDataTool.App
             this.appConfiguration = appConfiguration;
             this.reportingService = reportingService;
             this.dataSourceService = dataSourceService;
+            this.appDataService = appDataService;
             this.parallelOptions = new ParallelOptions
             {
                 MaxDegreeOfParallelism = this.appConfiguration.CompareSettings.MaxDegreeOfParallelism,
@@ -47,7 +49,7 @@ namespace CompareDataTool.App
                 if (sourceCount != destinationCount)
                 {
                     this.logger.LogWarning("Count mismatch");
-                    await this.dataCompareService.SaveRecordCountMismatchAsync(this.runId, entityMapping.SourceEntity, entityMapping.DestinationEntity, sourceCount, destinationCount);
+                    await this.appDataService.SaveRecordCountMismatchAsync(this.runId, entityMapping.SourceEntity, entityMapping.DestinationEntity, sourceCount, destinationCount);
                 }
                 await this.GetDataToCompareAsync(this.appConfiguration.EnvironmentSettings.Source.Type, entityMapping.SourceEntity, entityMapping.PrimaryKeyMapping.SourcePrimaryKey, entityMapping.DestinationEntity, entityMapping.FieldMappings);
                 //await this.GetDataToCompareAsync(this.appConfiguration.EnvironmentSettings.Destination.Type, entityMapping.DestinationEntity, entityMapping.PrimaryKeyMapping.DestinationPrimaryKey, entityMapping.SourceEntity, entityMapping.FieldMappings);
@@ -80,7 +82,7 @@ namespace CompareDataTool.App
                         this.logger.LogInformation("*");
                         if (this.appConfiguration.CompareSettings.SnapshotRowId)
                         {
-                            await this.dataCompareService.SaveRowIdAsync(this.runId, type, sourceEntity, sourceRow[sourcePrimaryKey].ToString());
+                            await this.appDataService.SaveRowIdAsync(this.runId, type, sourceEntity, sourceRow[sourcePrimaryKey].ToString());
                         }
 
                         var destinationType = type;
@@ -103,14 +105,14 @@ namespace CompareDataTool.App
                                 if (!fieldCompareResult.Equal)
                                 {
                                     this.logger.LogDebug("Field Mismatch");
-                                    await this.dataCompareService.SaveEntityFieldMismatchAsync(this.runId, sourceEntity, destinationEntity, sourceRow[sourcePrimaryKey].ToString(), fieldMapping.SourceField, fieldMapping.DestinationField, fieldCompareResult.SourceValue, fieldCompareResult.DestinationValue);
+                                    await this.appDataService.SaveEntityFieldMismatchAsync(this.runId, sourceEntity, destinationEntity, sourceRow[sourcePrimaryKey].ToString(), fieldMapping.SourceField, fieldMapping.DestinationField, fieldCompareResult.SourceValue, fieldCompareResult.DestinationValue);
                                 }
                             });
                         }
                         else
                         {
                             this.logger.LogWarning("Mising record");
-                            await this.dataCompareService.SaveEntityRecordMismatchAsync(runId, sourceRow[sourcePrimaryKey].ToString(), sourceEntity, type);
+                            await this.appDataService.SaveEntityRecordMismatchAsync(runId, sourceRow[sourcePrimaryKey].ToString(), sourceEntity, type);
                         }
                     }
                     catch (Exception ex)
