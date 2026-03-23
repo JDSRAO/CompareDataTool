@@ -10,7 +10,7 @@ namespace CompareDataTool.Infrastructure.DataSources.Dataverse
     public class TdsSqlManager : IDisposable
     {
         private static HttpClient client = new HttpClient();
-        private const int timeout = 60;
+        private const int timeout = 0;
 
         private readonly string connectionString;
         private readonly string tenantId;
@@ -91,7 +91,7 @@ namespace CompareDataTool.Infrastructure.DataSources.Dataverse
             if (buffered)
             {
                 //return await connection.QueryUnbufferedAsync<T>(sql, param: null, transaction: null);
-                return sqlConnection.Query<T>(sql, param: null, transaction: null, buffered: buffered);
+                return sqlConnection.Query<T>(sql, param: null, transaction: null, buffered: buffered, commandTimeout: timeout);
             }
             else
             {

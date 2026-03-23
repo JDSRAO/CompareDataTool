@@ -7,7 +7,7 @@ namespace CompareDataTool.Infrastructure.Data.Sqlite
 {
     internal class SqLiteManager
     {
-        private const int timeout = 60;
+        private const int timeout = 0;
 
         private readonly string connectionString;
 
