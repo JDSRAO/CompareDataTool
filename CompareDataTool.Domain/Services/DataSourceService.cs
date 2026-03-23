@@ -28,6 +28,18 @@ namespace CompareDataTool.Domain.Services
             return (row.Count > 0, row);
         }
 
+        public Task<int> GetSourceCountAsync(string entity)
+        {
+            var dataRepository = this.dataSourceRepositoryFactory.GetDataSourceRepositoryService(DataSourceTypes.Source);
+            return dataRepository.GetCountAsync(entity);
+        }
+
+        public Task<int> GetDestinationCountAsync(string entity)
+        {
+            var dataRepository = this.dataSourceRepositoryFactory.GetDataSourceRepositoryService(DataSourceTypes.Destination);
+            return dataRepository.GetCountAsync(entity);
+        }
+
         public Task<IEnumerable<JObject>> GetSourceDataAsync(string entity, int pageNumber, int pageSize)
         {
             var dataRepository = this.dataSourceRepositoryFactory.GetDataSourceRepositoryService(DataSourceTypes.Source);

@@ -14,17 +14,19 @@ namespace CompareDataTool.App
         private readonly ParallelOptions parallelOptions;
         private readonly ParallelOptions fieldCompareParallelOptions;
         private readonly ReportingService reportingService;
+        private readonly DataSourceService dataSourceService;
 
         private readonly string runId = Guid.NewGuid().ToString();
         private Stopwatch stopwatch;
 
-        public Orchestrator(ILogger<Orchestrator> logger, DataCompareService dataCompareService, AppConfiguration appConfiguration, ReportingService reportingService)
+        public Orchestrator(ILogger<Orchestrator> logger, DataCompareService dataCompareService, AppConfiguration appConfiguration, ReportingService reportingService, DataSourceService dataSourceService)
         {
             stopwatch = new Stopwatch();
             this.dataCompareService = dataCompareService;
             this.logger = logger;
             this.appConfiguration = appConfiguration;
             this.reportingService = reportingService;
+            this.dataSourceService = dataSourceService;
             this.parallelOptions = new ParallelOptions
             {
                 MaxDegreeOfParallelism = this.appConfiguration.CompareSettings.MaxDegreeOfParallelism,
@@ -40,8 +42,8 @@ namespace CompareDataTool.App
             this.stopwatch.Start();
             foreach (var entityMapping in this.appConfiguration.EntityMappings)
             {
-                var sourceCount = await this.dataCompareService.GetCountAsync(this.appConfiguration.EnvironmentSettings.Source.Type, entityMapping.SourceEntity);
-                var destinationCount = await this.dataCompareService.GetCountAsync(this.appConfiguration.EnvironmentSettings.Destination.Type, entityMapping.DestinationEntity);
+                var sourceCount = await this.dataSourceService.GetSourceCountAsync(entityMapping.SourceEntity);
+                var destinationCount = await this.dataSourceService.GetDestinationCountAsync(entityMapping.DestinationEntity);
                 if (sourceCount != destinationCount)
                 {
                     this.logger.LogWarning("Count mismatch");
@@ -70,7 +72,7 @@ namespace CompareDataTool.App
             do
             {
                 this.logger.LogInformation($"PageNumber : {pageNumber}");
-                rows = await this.dataCompareService.GetDataAsync(type, sourceEntity, pageNumber, this.appConfiguration.CompareSettings.PageSize);
+                rows = await this.dataSourceService.GetSourceDataAsync(sourceEntity, pageNumber, this.appConfiguration.CompareSettings.PageSize);
                 await Parallel.ForEachAsync(rows, this.parallelOptions, async (sourceRow, token) =>
                 {
                     try
@@ -92,7 +94,7 @@ namespace CompareDataTool.App
                         }
 
                         //var exists = await this.dataCompareService.RecordExistsAsync(destinationType, destinationEntity, sourceRow[sourcePrimaryKey].ToString());
-                        var (exists, destinationRow) = await this.dataCompareService.GetDataAsync(destinationType, destinationEntity, sourceRow[sourcePrimaryKey].ToString());
+                        var (exists, destinationRow) = await this.dataSourceService.GetDestinationDataAsync(destinationEntity, sourceRow[sourcePrimaryKey].ToString());
                         if (exists)
                         {
                             await Parallel.ForEachAsync(fieldMappings, this.fieldCompareParallelOptions, async (fieldMapping, _) =>
