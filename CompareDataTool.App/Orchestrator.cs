@@ -98,7 +98,7 @@ namespace CompareDataTool.App
                             await Parallel.ForEachAsync(fieldMappings, this.fieldCompareParallelOptions, async (fieldMapping, _) =>
                             {
                                 var fieldCompareResult = this.dataCompareService.CompareValues(sourceRow, fieldMapping, destinationRow);
-                                if (!fieldCompareResult.Same)
+                                if (!fieldCompareResult.Equal)
                                 {
                                     this.logger.LogDebug("Field Mismatch");
                                     await this.dataCompareService.SaveEntityFieldMismatchAsync(this.runId, sourceEntity, destinationEntity, sourceRow[sourcePrimaryKey].ToString(), fieldMapping.SourceField, fieldMapping.DestinationField, fieldCompareResult.SourceValue, fieldCompareResult.DestinationValue);

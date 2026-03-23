@@ -68,7 +68,7 @@ namespace CompareDataTool.Domain.Services
             var destinationValue = Convert.ToString(destinationRow[fieldMapping.DestinationField]);
             return new FieldCompareResult
             {
-               Same = sourceValue.Equals(destinationValue),
+               Equal = sourceValue.Equals(destinationValue),
                SourceValue = sourceValue,
                DestinationValue = destinationValue,
             };

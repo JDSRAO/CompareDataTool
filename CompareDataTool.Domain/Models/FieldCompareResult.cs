@@ -2,7 +2,7 @@
 {
     public class FieldCompareResult
     {
-        public bool Same { get; set; } = default!;
+        public bool Equal { get; set; } = default!;
 
         public string SourceValue { get; set; } = default!;
 
